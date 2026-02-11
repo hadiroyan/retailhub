@@ -25,6 +25,17 @@ public class UserRepository implements PanacheRepository<User> {
                 email).firstResultOptional();
     }
 
+    public Optional<User> findByEmailWithRolesAndPrivileges(String email) {
+        return find("""
+                SELECT DISTINCT u FROM User u
+                LEFT JOIN FETCH u.userRoles ur
+                LEFT JOIN FETCH ur.role r
+                LEFT JOIN FETCH r.privileges p
+                WHERE u.email = ?1
+                """,
+                email).firstResultOptional();
+    }
+
     public Optional<User> findByProviderAndProviderId(String provider, String providerId) {
         return find("""
                 provider = ?1 AND providerId = ?2
