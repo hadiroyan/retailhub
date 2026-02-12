@@ -63,10 +63,37 @@ public class User extends PanacheEntityBase {
     public User() {
     }
 
+    /**
+     * Constructor for LOCAL provider registration.
+     */
     public User(String email, String password, String fullName) {
         this.email = email;
         this.password = password;
         this.fullName = fullName;
+        this.provider = "LOCAL";
+        this.emailVerified = false; // Not verified yet
+        this.enabled = true; // But account is active
+    }
+
+    /**
+     * Constructor for OAuth provider registration.
+     */
+    public User(String email, String fullName, String provider, String providerId) {
+        this.email = email;
+        this.password = ""; // No password for OAuth
+        this.fullName = fullName;
+        this.provider = provider;
+        this.providerId = providerId;
+        this.emailVerified = true; // Trust OAuth provider
+        this.enabled = true;
+    }
+
+    public static User createLocal(String email, String password, String fullName) {
+        return new User(email, password, fullName);
+    }
+
+    public static User createOAuth(String email, String fullName, String provider, String providerId) {
+        return new User(email, fullName, provider, providerId);
     }
 
     @Override
@@ -90,7 +117,10 @@ public class User extends PanacheEntityBase {
                 "id=" + id +
                 ", email='" + email + '\'' +
                 ", fullName='" + fullName + '\'' +
+                ", provider='" + provider + '\'' +
+                ", emailVerified=" + emailVerified +
                 ", enabled=" + enabled +
+                ", createdAt=" + createdAt +
                 '}';
     }
 

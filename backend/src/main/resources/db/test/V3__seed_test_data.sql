@@ -12,7 +12,7 @@ INSERT INTO users (id, email, password, full_name, provider, email_verified, ena
 VALUES (
     '00000000-0000-0000-0000-000000000001',  -- Fixed UUID for predictable tests
     'test.superadmin@test.com',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', -- "password123"
+    '$2a$12$3RuKtiaXjRaxj4XRQm/I4OGVcmLLrymPQEeoXrUsHGb2/6NkPFU9q', -- "password123"
     'Test Super Admin',
     'LOCAL',
     true,
@@ -35,7 +35,7 @@ INSERT INTO users (id, email, password, full_name, provider, email_verified, ena
 VALUES (
     '00000000-0000-0000-0000-000000000002',
     'test.customer@test.com',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '$2a$12$3RuKtiaXjRaxj4XRQm/I4OGVcmLLrymPQEeoXrUsHGb2/6NkPFU9q',
     'Test Customer',
     'LOCAL',
     false,  -- Not verified
@@ -58,7 +58,7 @@ INSERT INTO users (id, email, password, full_name, provider, email_verified, ena
 VALUES (
     '00000000-0000-0000-0000-000000000003',
     'test.owner@test.com',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '$2a$12$3RuKtiaXjRaxj4XRQm/I4OGVcmLLrymPQEeoXrUsHGb2/6NkPFU9q',
     'Test Owner',
     'LOCAL',
     true,
@@ -81,7 +81,7 @@ INSERT INTO users (id, email, password, full_name, provider, email_verified, ena
 VALUES (
     '00000000-0000-0000-0000-000000000004',
     'test.disabled@test.com',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '$2a$12$3RuKtiaXjRaxj4XRQm/I4OGVcmLLrymPQEeoXrUsHGb2/6NkPFU9q',
     'Test Disabled User',
     'LOCAL',
     true,
