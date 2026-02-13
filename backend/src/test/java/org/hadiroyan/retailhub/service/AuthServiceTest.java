@@ -4,6 +4,7 @@ import static org.hadiroyan.retailhub.util.TestConstanst.DISABLED_USER_EMAIL;
 import static org.hadiroyan.retailhub.util.TestConstanst.SUPER_ADMIN_EMAIL;
 import static org.hadiroyan.retailhub.util.TestConstanst.TEST_PASSWORD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,6 +21,7 @@ import org.hadiroyan.retailhub.dto.response.UserResponse;
 import org.hadiroyan.retailhub.exception.AccountDisabledException;
 import org.hadiroyan.retailhub.exception.EmailAlreadyExistsException;
 import org.hadiroyan.retailhub.exception.InvalidEmailFormatException;
+import org.hadiroyan.retailhub.exception.NotFoundException;
 import org.hadiroyan.retailhub.exception.UnauthorizedException;
 import org.hadiroyan.retailhub.exception.ValidationException;
 import org.hadiroyan.retailhub.model.User;
@@ -218,5 +220,35 @@ public class AuthServiceTest {
         userRepository
                 .findByEmail("trimtest@test.com")
                 .ifPresent(user -> userRepository.delete(user));
+    }
+
+    @Test
+    void should_get_current_user_successfully() {
+        UserResponse response = authService.getCurrentUser(SUPER_ADMIN_EMAIL);
+
+        assertNotNull(response);
+        assertEquals(SUPER_ADMIN_EMAIL, response.email);
+        assertTrue(response.enabled);
+        assertNotNull(response.roles);
+        assertTrue(response.roles.contains("SUPER_ADMIN"));
+    }
+
+    @Test
+    void should_fail_get_current_user_for_nonexistent_email() {
+        String email = "nonexistent@test.com";
+
+        assertThrows(NotFoundException.class, () -> authService.getCurrentUser(email));
+    }
+
+    @Test
+    void should_generate_token_for_user() {
+        User user = userRepository.findByEmailWithRolesAndPrivileges(SUPER_ADMIN_EMAIL)
+                .orElseThrow();
+
+        String token = authService.generateTokenForUser(user);
+
+        assertNotNull(token);
+        assertFalse(token.isEmpty());
+        assertEquals(3, token.split("\\.").length, "JWT should have 3 parts");
     }
 }

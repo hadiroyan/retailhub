@@ -8,6 +8,7 @@ import org.hadiroyan.retailhub.dto.response.AuthResponse;
 import org.hadiroyan.retailhub.dto.response.UserResponse;
 import org.hadiroyan.retailhub.exception.AccountDisabledException;
 import org.hadiroyan.retailhub.exception.EmailAlreadyExistsException;
+import org.hadiroyan.retailhub.exception.NotFoundException;
 import org.hadiroyan.retailhub.exception.RoleNotFoundException;
 import org.hadiroyan.retailhub.exception.UnauthorizedException;
 import org.hadiroyan.retailhub.model.Role;
@@ -127,4 +128,58 @@ public class AuthService {
                 "Account created successfully",
                 UserResponse.fromUser(user));
     }
+
+    public UserResponse getCurrentUser(String email) {
+        LOG.infof("Get current user request for email: %s", email);
+
+        User user = userRepository.findByEmailWithRolesAndPrivileges(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        return UserResponse.fromUser(user);
+    }
+
+    public String generateTokenForUser(User user) {
+        return jwtTokenService.generateToken(user);
+    }
+
+    // ============================================
+    // Future: Fetch Store Data Helper (TODO: Implement when Store entity is ready)
+    // ============================================
+
+    /**
+     * Fetch store data for user to include in JWT token.
+     * 
+     * private Object fetchStoreDataForUser(User user) {
+     * Set<String> roles = user.userRoles.stream()
+     * .map(ur -> ur.role.name)
+     * .collect(Collectors.toSet());
+     * 
+     * if (roles.contains("OWNER")) {
+     * List<Store> stores = storeRepository.findByOwnerId(user.id);
+     * return stores.stream()
+     * .map(s -> Map.of(
+     * "id", s.id.toString(),
+     * "name", s.name,
+     * "slug", s.slug))
+     * .toList();
+     * }
+     * 
+     * if (roles.contains("ADMIN") || roles.contains("MANAGER") ||
+     * roles.contains("STAFF")) {
+     * Optional<UserRole> userRole = user.userRoles.stream()
+     * .filter(ur -> ur.storeId != null)
+     * .findFirst();
+     * 
+     * if (userRole.isPresent()) {
+     * Store store = storeRepository.findById(userRole.get().storeId).orElseThrow();
+     * return Map.of(
+     * "id", store.id.toString(),
+     * "name", store.name,
+     * "slug", store.slug);
+     * }
+     * }
+     * 
+     * return null;
+     * }
+     */
 }

@@ -1,9 +1,11 @@
 package org.hadiroyan.retailhub.service;
 
+import static org.hadiroyan.retailhub.util.TestConstanst.CUSTOMER_EMAIL;
 import static org.hadiroyan.retailhub.util.TestConstanst.SUPER_ADMIN_EMAIL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -50,10 +52,15 @@ public class JwtTokenServiceTest {
 
         JsonWebToken jwt = jwtParser.parse(token);
 
-        assertEquals(user.email, jwt.getClaim("upn"));
-        assertEquals(user.id.toString(), jwt.getSubject());
-        assertEquals(user.fullName, jwt.getClaim("name"));
-        assertEquals(user.email, jwt.getClaim("email"));
+        assertEquals(user.email, jwt.getName(), "upn claim should be user email");
+        assertEquals(user.id.toString(), jwt.getSubject(), "sub claim should be user ID");
+        assertEquals("RetailHub", jwt.getIssuer(), "issuer should be RetailHub");
+
+        assertEquals(user.fullName, jwt.getClaim("fullName"));
+        assertEquals(user.provider, jwt.getClaim("provider"));
+        Object claim = jwt.getClaim("emailVerified");
+        boolean emailVerified = Boolean.parseBoolean(claim.toString());
+        assertEquals(user.emailVerified, emailVerified);
         assertTrue(jwt.getClaim("enabled") == JsonValue.TRUE);
 
         Set<String> groups = jwt.getGroups();
@@ -113,7 +120,8 @@ public class JwtTokenServiceTest {
         long expectedExpTime = System.currentTimeMillis() / 1000 + customExpiration;
         long actualExpTime = jwt.getExpirationTime();
 
-        assertTrue(Math.abs(expectedExpTime - actualExpTime) < 5);
+        assertTrue(Math.abs(expectedExpTime - actualExpTime) < 5,
+                "Expiration time should be approximately " + customExpiration + " seconds");
     }
 
     @Test
@@ -123,6 +131,52 @@ public class JwtTokenServiceTest {
         String token = jwtTokenService.generateToken(user);
 
         JsonWebToken jwt = jwtParser.parse(token);
-        assertEquals("http://localhost:8080", jwt.getIssuer());
+        assertEquals("RetailHub", jwt.getIssuer());
+    }
+
+    @Test
+    void should_not_include_store_claims_for_super_admin() throws ParseException {
+        User user = userRepository.findByEmailWithRolesAndPrivileges(SUPER_ADMIN_EMAIL)
+                .orElseThrow();
+
+        String token = jwtTokenService.generateToken(user);
+
+        JsonWebToken jwt = jwtParser.parse(token);
+        assertNull(jwt.getClaim("stores"), "SUPER_ADMIN should not have stores claim");
+        assertNull(jwt.getClaim("assignedStore"), "SUPER_ADMIN should not have assignedStore claim");
+    }
+
+    @Test
+    void should_not_include_store_claims_for_customer() throws ParseException {
+        User user = userRepository.findByEmailWithRolesAndPrivileges(CUSTOMER_EMAIL)
+                .orElseThrow();
+
+        String token = jwtTokenService.generateToken(user);
+
+        JsonWebToken jwt = jwtParser.parse(token);
+        assertNull(jwt.getClaim("stores"), "CUSTOMER should not have stores claim");
+        assertNull(jwt.getClaim("assignedStore"), "CUSTOMER should not have assignedStore claim");
+    }
+
+    @Test
+    void should_include_provider_claim() throws ParseException {
+        User user = userRepository.findByEmailWithRolesAndPrivileges(SUPER_ADMIN_EMAIL)
+                .orElseThrow();
+
+        String token = jwtTokenService.generateToken(user);
+
+        JsonWebToken jwt = jwtParser.parse(token);
+        assertEquals("LOCAL", jwt.getClaim("provider"));
+    }
+
+    @Test
+    void should_include_email_verified_claim() throws ParseException {
+        User user = userRepository.findByEmailWithRolesAndPrivileges(SUPER_ADMIN_EMAIL)
+                .orElseThrow();
+
+        String token = jwtTokenService.generateToken(user);
+
+        JsonWebToken jwt = jwtParser.parse(token);
+        assertNotNull(jwt.getClaim("emailVerified"));
     }
 }

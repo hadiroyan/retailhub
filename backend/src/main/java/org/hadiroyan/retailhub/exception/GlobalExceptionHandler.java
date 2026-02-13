@@ -101,8 +101,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         // Validation Errors (400)
-        if (exception instanceof EmailAlreadyExistsException ||
-                exception instanceof InvalidEmailFormatException ||
+        if (exception instanceof InvalidEmailFormatException ||
                 exception instanceof WeakPasswordException) {
             LOG.debugf("Validation error: %s", exception.getMessage());
             return Response
@@ -143,7 +142,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         // Conflict (409 Conflict)
-        if (exception instanceof ConflictException) {
+        if (exception instanceof EmailAlreadyExistsException || exception instanceof ConflictException) {
             LOG.debugf("Conflict: %s", exception.getMessage());
             return Response
                     .status(Response.Status.CONFLICT)
