@@ -25,7 +25,7 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log("✅ Response:", response.status, response.config.url);
+    console.log("Response:", response.status, response.config.url);
     return response;
   },
   (error) => {
@@ -34,13 +34,12 @@ api.interceptors.response.use(
     // Handle common errors
     if (error.response?.status === 401) {
       // Unauthorized - redirect to login
-      // TODO: handle with auth store
-      console.log("🔒 Unauthorized - Need to login");
+      console.log("Unauthorized - Need to login");
     }
 
     if (error.response?.status === 403) {
       // Forbidden - no permission
-      console.log("🚫 Forbidden - No permission");
+      console.log("Forbidden - No permission");
     }
 
     return Promise.reject(error);

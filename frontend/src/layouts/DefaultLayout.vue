@@ -1,21 +1,3 @@
-<script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { ROUTE_NAMES } from '@/utils/constants';
-
-const router = useRouter();
-const mobileMenuOpen = ref(false);
-
-const toggleMobileMenu = () => {
-    mobileMenuOpen.value = !mobileMenuOpen.value;
-};
-
-const navigateTo = (routeName) => {
-    router.push({ name: routeName });
-    mobileMenuOpen.value = false;
-};
-</script>
-
 <template>
     <div class="min-h-screen flex flex-col bg-gray-50">
         <!-- Navbar -->
@@ -30,29 +12,23 @@ const navigateTo = (routeName) => {
                     <!-- Desktop Navigation -->
                     <div class="hidden md:flex items-center space-x-4">
                         <button @click="navigateTo(ROUTE_NAMES.HOME)"
-                            class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer">
                             Home
                         </button>
                         <button @click="navigateTo(ROUTE_NAMES.LOGIN)"
-                            class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer">
                             Login
                         </button>
                         <button @click="navigateTo('register')"
-                            class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer">
                             Register
                         </button>
                     </div>
 
                     <!-- Mobile menu button -->
                     <div class="md:hidden">
-                        <button @click="toggleMobileMenu"
-                            class="text-gray-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md p-2">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                        <button @click="toggleMobileMenu" class="text-gray-700 hover:text-blue-600 rounded-md p-2">
+                            <i :class="['fas', mobileMenuOpen ? 'fa-xmark' : 'fa-bars']"></i>
                         </button>
                     </div>
                 </div>
@@ -100,12 +76,6 @@ const navigateTo = (routeName) => {
                         <h3 class="text-lg font-semibold text-gray-900 mb-3">Quick Links</h3>
                         <ul class="space-y-2 text-sm">
                             <li>
-                                <button @click="navigateTo(ROUTE_NAMES.HOME)"
-                                    class="text-gray-600 hover:text-blue-600 transition-colors">
-                                    Home
-                                </button>
-                            </li>
-                            <li>
                                 <button @click="navigateTo(ROUTE_NAMES.LOGIN)"
                                     class="text-gray-600 hover:text-blue-600 transition-colors">
                                     Login
@@ -124,9 +94,8 @@ const navigateTo = (routeName) => {
                     <div>
                         <h3 class="text-lg font-semibold text-gray-900 mb-3">Contact</h3>
                         <ul class="space-y-2 text-sm text-gray-600">
-                            <li>Email: support@retailhub.com</li>
-                            <li>Phone: +62 123 4567 890</li>
-                            <li>Jakarta, Indonesia</li>
+                            <li>Email: hadiroyanf@gmail.com</li>
+                            <li>Phone: TBC</li>
                         </ul>
                     </div>
                 </div>
@@ -139,5 +108,25 @@ const navigateTo = (routeName) => {
         </footer>
     </div>
 </template>
+
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { ROUTE_NAMES } from '../utils/constants';
+
+const router = useRouter();
+const mobileMenuOpen = ref(false);
+
+const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+};
+
+const navigateTo = (routeName) => {
+    router.push({ name: routeName });
+    mobileMenuOpen.value = false;
+};
+</script>
+
+
 
 <style scoped></style>
