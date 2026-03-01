@@ -9,7 +9,6 @@ Base URL:
 
 ## Authentication
 
-
 | Method | Endpoint                      | Description                      |
 | ------ | ----------------------------- | -------------------------------- |
 | POST   | `/api/auth/login`             | User login                       |
@@ -18,11 +17,9 @@ Base URL:
 | GET    | `/api/auth/me`                | Get currently authenticated user |
 | POST   | `/api/auth/logout`            | Logout current user              |
 
-
 ---
 
-## Store _(planned)_
-
+## Store
 
 | Method | Endpoint                     | Description                                |
 | ------ | ---------------------------- | ------------------------------------------ |
@@ -33,8 +30,6 @@ Base URL:
 | DELETE | `/api/v1/stores/{id}`        | Delete store (OWNER of store, SUPER_ADMIN) |
 | PATCH  | `/api/v1/stores/{id}/status` | Change status (SUPER_ADMIN only)           |
 
-
 ---
 
 ### More endpoints will be added as new features are implemented.
-
