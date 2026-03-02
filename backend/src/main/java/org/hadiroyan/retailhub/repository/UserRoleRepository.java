@@ -2,6 +2,7 @@ package org.hadiroyan.retailhub.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.hadiroyan.retailhub.model.UserRole;
@@ -64,6 +65,17 @@ public class UserRoleRepository implements PanacheRepository<UserRole> {
                 AND ur.storeId = ?3
                 """,
                 userId, roleName, storeId) > 0;
+    }
+
+    public boolean userHasAnyRoleInStore(UUID userId, Set<String> roleNames, UUID storeId) {
+        return count("""
+                FROM UserRole ur
+                JOIN ur.role r
+                WHERE ur.user.id = ?1
+                AND r.name IN ?2
+                AND ur.storeId = ?3
+                """,
+                userId, roleNames, storeId) > 0;
     }
 
     public boolean userHasGlobalRole(UUID userId, String roleName) {

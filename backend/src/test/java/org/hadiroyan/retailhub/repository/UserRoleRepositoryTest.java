@@ -4,6 +4,7 @@ import static org.hadiroyan.retailhub.util.TestConstanst.SUPER_ADMIN_ID;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.hadiroyan.retailhub.model.UserRole;
@@ -78,6 +79,20 @@ public class UserRoleRepositoryTest {
         assertFalse(hasRole, "SUPER_ADMIN is global, not store-specific");
     }
 
+    @Test
+    void should_return_false_when_user_has_no_any_role_in_store() {
+        UUID randomStoreId = UUID.randomUUID();
+
+        Set<String> roleNames = Set.of("SUPER_ADMIN");
+
+        boolean hasAnyRole = userRoleRepository
+                .userHasAnyRoleInStore(SUPER_ADMIN_ID, roleNames, randomStoreId);
+
+        assertFalse(hasAnyRole,
+                "SUPER_ADMIN is global, so should not match store-specific role check");
+    }
+
+    @Test
     @TestTransaction
     void should_delete_user_roles_by_user_id() {
         UUID nonExistentUserId = UUID.randomUUID();
