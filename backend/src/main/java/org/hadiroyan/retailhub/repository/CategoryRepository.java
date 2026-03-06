@@ -1,8 +1,10 @@
 package org.hadiroyan.retailhub.repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.hadiroyan.retailhub.model.Category;
 
@@ -49,5 +51,40 @@ public class CategoryRepository implements PanacheRepositoryBase<Category, UUID>
                         """, Long.class)
                 .setParameter("categoryId", categoryId)
                 .getSingleResult();
+    }
+
+    public Map<UUID, Long> countProductsByCategoryIds(List<UUID> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Object[]> rows = getEntityManager()
+                .createQuery("""
+                        SELECT p.category.id, COUNT(p)
+                        FROM Product p
+                        WHERE p.category.id IN :categoryIds
+                        GROUP BY p.category.id
+                        """, Object[].class)
+                .setParameter("categoryIds", categoryIds)
+                .getResultList();
+
+        return rows.stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> (Long) row[1]
+                ));
+    }
+
+    public Map<UUID, List<Category>> findChildrenByParentIds(List<UUID> parentIds) {
+        if (parentIds == null || parentIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Category> allChildren = find("parent.id IN ?1",
+                Sort.by("name").ascending(), parentIds)
+                .list();
+
+        return allChildren.stream()
+                .collect(Collectors.groupingBy(child -> child.parent.id));
     }
 }
