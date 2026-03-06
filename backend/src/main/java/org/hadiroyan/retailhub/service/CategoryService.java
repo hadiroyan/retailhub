@@ -39,9 +39,6 @@ public class CategoryService {
     @Inject
     CategoryMapper categoryMapper;
 
-    @Inject
-    SlugUtil slugUtil;
-
     @Transactional
     public CategoryResponse createCategory(UUID storeId, UUID userId, CreateCategoryRequest request) {
 
@@ -114,7 +111,7 @@ public class CategoryService {
         if (request.parentId != null) {
             parent = findCategoryOrThrow(request.parentId);
             validateSameStore(parent, storeId);
-            validateRootCategory(category);
+            validateRootCategory(parent);
             validateNotSelf(category, parent);
         }
 
