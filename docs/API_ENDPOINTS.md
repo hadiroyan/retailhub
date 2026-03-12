@@ -28,7 +28,32 @@ Base URL:
 | GET    | `/api/v1/stores/{slug}`      | Store detail (Public)                      |
 | PUT    | `/api/v1/stores/{id}`        | Update store (OWNER of store, SUPER_ADMIN) |
 | DELETE | `/api/v1/stores/{id}`        | Delete store (OWNER of store, SUPER_ADMIN) |
-| PATCH  | `/api/v1/stores/{id}/status` | Change status (SUPER_ADMIN only)           |
+| PATCH  | `/api/v1/stores/{id}/status` | Change status (OWNER, SUPER_ADMIN)           |
+
+---
+
+## Category
+
+| Method | Endpoint                                     | Description                             |
+| ------ | -------------------------------------------- | --------------------------------------- |
+| POST   | `/api/v1/stores/{storeId}/categories`        | Create category (OWNER, ADMIN, MANAGER) |
+| GET    | `/api/v1/stores/{storeId}/categories`        | List category (Public)                  |
+| GET    | `/api/v1/stores/{storeId}/categories/{slug}` | Category detail by slug (Public)        |
+| PUT    | `/api/v1/stores/{storeId}/categories/{id}`   | Update category (OWNER, ADMIN, MANAGER) |
+| DELETE | `/api/v1/stores/{storeId}/categories/{id}`   | Delete category (OWNER, ADMIN, MANAGER) |
+
+---
+
+## Product
+
+| Method | Endpoint                                         | Description                                              |
+| ------ | ------------------------------------------------ | -------------------------------------------------------- |
+| POST   | `/api/v1/stores/{storeId}/products`              | Create product (OWNER, ADMIN, MANAGER)                   |
+| GET    | `/api/v1/stores/{storeId}/products`              | List product (Public, filter: name/category/sortByPrice) |
+| GET    | `/api/v1/stores/{storeId}/products/{sku}  `      | Product detail by SKU (Public)                           |
+| GET    | `/api/v1/stores/{storeId}/products/{sku}/detail` | Product detail by SKU (INTERNAL: OWNER, ADMIN, MANAGER)  |
+| PUT    | `/api/v1/stores/{storeId}/products/{id} `        | Update product (OWNER, ADMIN, MANAGER)                   |
+| DELETE | `/api/v1/stores/{storeId}/products/{id}`         | Delete product (OWNER, ADMIN, MANAGER)                   |
 
 ---
 
