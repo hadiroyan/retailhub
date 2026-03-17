@@ -170,6 +170,17 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
                     .build();
         }
 
+        // JAX-RS exceptions
+        if (exception instanceof jakarta.ws.rs.WebApplicationException) {
+            jakarta.ws.rs.WebApplicationException wae = (jakarta.ws.rs.WebApplicationException) exception;
+            int status = wae.getResponse().getStatus();
+            LOG.warnf("JAX-RS exception: %d %s", status, exception.getMessage());
+            return Response
+                    .status(status)
+                    .entity(ApiResponse.error(status, exception.getMessage()))
+                    .build();
+        }
+
         // Default: Internal server error (500)
         LOG.error("Unhandled exception", exception);
         String message = "An unexpected error occurred. Please try again later.";
