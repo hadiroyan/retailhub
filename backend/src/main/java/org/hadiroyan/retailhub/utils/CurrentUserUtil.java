@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.hadiroyan.retailhub.exception.UnauthorizedException;
+import org.jboss.logging.Logger;
 
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,6 +16,8 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class CurrentUserUtil {
+
+    private static final Logger LOG = Logger.getLogger(CurrentUserUtil.class);
 
     @Inject
     SecurityIdentity identity;
@@ -34,7 +37,7 @@ public class CurrentUserUtil {
             throw new UnauthorizedException("User not authenticated");
         }
         try {
-            return UUID.fromString(identity.getPrincipal().getName());
+            return UUID.fromString(jwt.getSubject());
         } catch (IllegalArgumentException e) {
             throw new UnauthorizedException("Invalid user ID format in token");
         }
@@ -47,12 +50,14 @@ public class CurrentUserUtil {
      */
     public Optional<UUID> getUserIdOptional() {
         if (identity.isAnonymous()) {
+            LOG.info("Identity is anonymous");
             return Optional.empty();
         }
-
+        LOG.infof("Principal name: %s", identity.getPrincipal().getName());
         try {
-            return Optional.of(UUID.fromString(identity.getPrincipal().getName()));
+            return Optional.of(UUID.fromString(jwt.getSubject()));
         } catch (IllegalArgumentException e) {
+            LOG.infof("Failed to parse UUID: %s", jwt.getSubject());
             return Optional.empty();
         }
     }

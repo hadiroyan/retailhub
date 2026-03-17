@@ -22,6 +22,7 @@ import org.hadiroyan.retailhub.repository.StoreRepository;
 import org.hadiroyan.retailhub.repository.UserRepository;
 import org.hadiroyan.retailhub.repository.UserRoleRepository;
 import org.hadiroyan.retailhub.utils.SlugUtil;
+import org.jboss.logging.Logger;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -29,6 +30,8 @@ import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 public class StoreService {
+
+    private static final Logger LOG = Logger.getLogger(StoreService.class);
 
     @Inject
     StoreRepository storeRepository;
@@ -50,9 +53,10 @@ public class StoreService {
 
     @Transactional
     public StoreResponse createStore(String email, CreateStoreRequest request) {
-
         User owner = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
+
+        LOG.infof("create store with store name: %s with owner email: %s", request.name, owner.email);
 
         Store store = new Store();
         store.owner = owner;
@@ -80,6 +84,7 @@ public class StoreService {
         userRole.storeId = store.id;
         userRole.role = role;
 
+        LOG.infof("Assign owner, role and store");
         userRoleRepository.persist(userRole);
     }
 
@@ -88,12 +93,15 @@ public class StoreService {
         long total;
 
         if (roles.contains("SUPER_ADMIN")) {
+            LOG.info("Get lists product for SUPER_ADMIN");
             stores = storeRepository.findAllPaged(page, size);
             total = storeRepository.countAll();
         } else if (roles.contains("OWNER")) {
+            LOG.infof("Get lists product for OWNER with owner ID: %s:", ownerId);
             stores = storeRepository.findByOwner(ownerId, page, size);
             total = storeRepository.countByOwner(ownerId);
         } else {
+            LOG.info("Get lists product for PUBLIC");
             stores = storeRepository.findAllActive(page, size);
             total = storeRepository.countAllActive();
         }
@@ -112,6 +120,7 @@ public class StoreService {
         boolean isActive = StoreStatus.ACTIVE.name().equals(store.status);
         boolean isSuperAdmin = roles.contains("SUPER_ADMIN");
         boolean isOwner = store.owner != null && store.owner.id.equals(userId);
+        LOG.infof("Get store by slug with isActive[%b] isSuperAdmin[%b] isOwner[%b]", isActive, isSuperAdmin, isOwner);
 
         if (!isActive && !isSuperAdmin && !isOwner) {
             throw new NotFoundException("Store not found");
@@ -126,6 +135,7 @@ public class StoreService {
         Store store = storeRepository.findByIdOptional(storeId)
                 .orElseThrow(() -> new NotFoundException("Store not found"));
 
+        LOG.infof("Update store %s", store.name);
         assertCanModify(store, userId, roles);
 
         store.name = request.name;
@@ -143,6 +153,7 @@ public class StoreService {
         Store store = storeRepository.findByIdOptional(storeId)
                 .orElseThrow(() -> new NotFoundException("Store not found"));
 
+        LOG.infof("Delete store %s", store.name);
         assertCanModify(store, userId, roles);
 
         storeRepository.delete(store);
@@ -153,6 +164,7 @@ public class StoreService {
         Store store = storeRepository.findByIdOptional(storeId)
                 .orElseThrow(() -> new NotFoundException("Store not found"));
 
+        LOG.infof("Update store status %s", store.name);
         assertCanModify(store, userId, roles);
         StoreStatus newStatus = StoreStatus.valueOf(request.status);
 
@@ -170,6 +182,7 @@ public class StoreService {
     private void assertCanModify(Store store, UUID userId, Set<String> roles) {
         boolean isSuperAdmin = roles.contains("SUPER_ADMIN");
         boolean isOwner = store.owner != null && store.owner.id.equals(userId);
+        LOG.infof("Check permission: [isSuperAdmin= %b] [isOwner= %b]", isSuperAdmin, isOwner);
 
         if (!isSuperAdmin && !isOwner) {
             throw new ForbiddenException("You don't have permission to modify this store");

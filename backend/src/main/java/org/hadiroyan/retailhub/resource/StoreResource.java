@@ -15,6 +15,7 @@ import org.hadiroyan.retailhub.dto.response.PagedResponse;
 import org.hadiroyan.retailhub.dto.response.StoreResponse;
 import org.hadiroyan.retailhub.service.StoreService;
 import org.hadiroyan.retailhub.utils.CurrentUserUtil;
+import org.jboss.logging.Logger;
 
 import java.util.Set;
 import java.util.UUID;
@@ -23,6 +24,8 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StoreResource {
+
+    private static final Logger LOG = Logger.getLogger(StoreResource.class);
 
     @Inject
     StoreService storeService;
@@ -34,6 +37,7 @@ public class StoreResource {
     @RolesAllowed("OWNER")
     public Response createStore(@Valid CreateStoreRequest request) {
         String email = currentUser.getEmail();
+        LOG.infof("Create store request for email: %s by user email: %s", request.email, email);
 
         StoreResponse response = storeService.createStore(email, request);
         return Response.status(Response.Status.CREATED)
@@ -46,6 +50,7 @@ public class StoreResource {
     public Response listStores(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("10") int size) {
+        LOG.infof("Get list store request");
 
         UUID userId = currentUser.getUserIdOptional().orElse(null);
         Set<String> userRole = currentUser.getRoles();
@@ -58,6 +63,7 @@ public class StoreResource {
     @Path("/{slug}")
     @PermitAll
     public Response getStore(@PathParam("slug") String slug) {
+        LOG.infof("Get store by slug request");
 
         UUID userId = currentUser.getUserIdOptional().orElse(null);
         Set<String> userRole = currentUser.getRoles();
@@ -75,6 +81,7 @@ public class StoreResource {
 
         UUID userId = currentUser.getUserId();
         Set<String> userRole = currentUser.getRoles();
+        LOG.infof("Update store request from email %s", currentUser.getEmail());
 
         StoreResponse store = storeService.updateStore(storeId, userId, userRole, request);
 
@@ -87,6 +94,7 @@ public class StoreResource {
     public Response deleteStore(@PathParam("id") UUID storeId) {
         UUID userId = currentUser.getUserId();
         Set<String> userRole = currentUser.getRoles();
+        LOG.infof("Delete store request from email %s", currentUser.getEmail());
 
         storeService.deleteStore(storeId, userId, userRole);
         return Response.ok(ApiResponse.success("Store deleted successfully")).build();
