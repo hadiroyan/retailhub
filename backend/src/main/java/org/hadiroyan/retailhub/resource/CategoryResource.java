@@ -9,6 +9,7 @@ import org.hadiroyan.retailhub.dto.response.CategoryResponse;
 import org.hadiroyan.retailhub.dto.response.PagedResponse;
 import org.hadiroyan.retailhub.service.CategoryService;
 import org.hadiroyan.retailhub.utils.CurrentUserUtil;
+import org.jboss.logging.Logger;
 
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -32,6 +33,8 @@ import jakarta.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class CategoryResource {
 
+    private static final Logger LOG = Logger.getLogger(CategoryResource.class);
+
     @Inject
     CategoryService categoryService;
 
@@ -43,6 +46,7 @@ public class CategoryResource {
     public Response createCategory(@PathParam("storeId") UUID storeId, @Valid CreateCategoryRequest request) {
 
         UUID userId = currentUser.getUserId();
+        LOG.infof("Create category request from user id: %s ", userId);
 
         CategoryResponse response = categoryService.createCategory(storeId, userId, request);
         return Response.status(Response.Status.CREATED)
@@ -57,6 +61,8 @@ public class CategoryResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("10") int size) {
 
+        LOG.info("Get list categories request");
+
         PagedResponse<CategoryResponse> result = categoryService.listCategories(storeId, page, size);
         return Response.ok(ApiResponse.success("Categories retrieved successfully", result)).build();
     }
@@ -68,6 +74,7 @@ public class CategoryResource {
             @PathParam("storeId") UUID storeId,
             @PathParam("slug") String slug) {
 
+        LOG.infof("Get category by slug: %s", slug);
         CategoryResponse response = categoryService.getCategoryBySlug(storeId, slug);
         return Response.ok(ApiResponse.success("Category retrieved successfully", response)).build();
     }
@@ -81,7 +88,7 @@ public class CategoryResource {
             @Valid UpdateCategoryRequest request) {
 
         UUID userId = currentUser.getUserId();
-
+        LOG.infof("Update category request from user id: %s ", userId);
         CategoryResponse response = categoryService.updateCategory(storeId, categoryId, userId, request);
         return Response.ok(ApiResponse.success("Category updated successfully", response)).build();
     }
@@ -94,6 +101,7 @@ public class CategoryResource {
             @PathParam("id") UUID categoryId) {
 
         UUID userId = currentUser.getUserId();
+        LOG.infof("Delete category request from user id: %s ", userId);
 
         categoryService.deleteCategory(storeId, categoryId, userId);
         return Response.ok(ApiResponse.success("Category deleted successfully")).build();
