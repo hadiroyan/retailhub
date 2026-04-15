@@ -20,6 +20,7 @@ import org.hadiroyan.retailhub.repository.CategoryRepository;
 import org.hadiroyan.retailhub.repository.ProductRepository;
 import org.hadiroyan.retailhub.repository.StoreRepository;
 import org.hadiroyan.retailhub.repository.UserRoleRepository;
+import org.jboss.logging.Logger;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -27,6 +28,8 @@ import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 public class ProductService {
+
+    private static final Logger LOG = Logger.getLogger(ProductService.class);
 
     @Inject
     StoreRepository storeRepository;
@@ -45,15 +48,18 @@ public class ProductService {
 
     // Create
     @Transactional
-    public ProductDetailResponse createProduct(UUID storeId, UUID userId,
-            CreateProductRequest request) {
+    public ProductDetailResponse createProduct(UUID storeId, UUID userId, CreateProductRequest request) {
+
+        LOG.debugf("action=CREATE_PRODUCT_START userId=%s storeId=%s sku=%s name=%s",
+                userId, storeId, request.sku, request.name);
 
         Store store = findStoreOrThrow(storeId);
         checkWritePermission(userId, storeId);
 
-        // SKU check
         if (productRepository.existsByStoreAndSku(storeId, request.sku)) {
-            throw new BadRequestException("SKU '" + request.sku + "' already exists in this store");
+            LOG.warnf("action=CREATE_PRODUCT_DUPLICATE_SKU userId=%s storeId=%s storeName=%s sku=%s",
+                    userId, storeId, store.name, request.sku);
+            throw new BadRequestException("SKU already exists");
         }
 
         Category category = null;
@@ -77,12 +83,19 @@ public class ProductService {
 
         productRepository.persist(product);
 
+        LOG.infof("action=CREATE_PRODUCT_SUCCESS userId=%s storeId=%s productId=%s sku=%s categoryId=%s",
+                userId, storeId, product.id, product.sku,
+                category != null ? category.id : "none");
+
         return productMapper.toDetailResponse(product);
     }
 
     // Read (Public)
     public PagedResponse<ProductResponse> listProducts(UUID storeId, String name,
             UUID categoryId, String sortByPrice, int page, int size) {
+
+        LOG.debugf("action=LIST_PRODUCTS_START storeId=%s name=%s categoryId=%s page=%d size=%d",
+                storeId, name, categoryId, page, size);
 
         findStoreOrThrow(storeId);
 
@@ -94,25 +107,41 @@ public class ProductService {
                 .map(productMapper::toResponse)
                 .toList();
 
+        LOG.infof("action=LIST_PRODUCTS_SUCCESS storeId=%s total=%d page=%d size=%d",
+                storeId, total, page, size);
+
         return new PagedResponse<>(content, page, size, total);
     }
 
     public ProductResponse getProductBySku(UUID storeId, String sku) {
+
+        LOG.debugf("action=GET_PRODUCT_BY_SKU_START storeId=%s sku=%s", storeId, sku);
+
         findStoreOrThrow(storeId);
 
         Product product = productRepository.findByStoreAndSku(storeId, sku)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        LOG.infof("action=GET_PRODUCT_BY_SKU_SUCCESS storeId=%s sku=%s productId=%s",
+                storeId, sku, product.id);
 
         return productMapper.toResponse(product);
     }
 
     // Read (Internal for OWNER, ADMIN, MANAGER)
     public ProductDetailResponse getProductDetail(UUID storeId, String sku, UUID userId) {
+
+        LOG.debugf("action=GET_PRODUCT_DETAIL_START userId=%s storeId=%s sku=%s",
+                userId, storeId, sku);
+
         findStoreOrThrow(storeId);
         checkWritePermission(userId, storeId);
 
         Product product = productRepository.findByStoreAndSku(storeId, sku)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        LOG.infof("action=GET_PRODUCT_DETAIL_SUCCESS userId=%s storeId=%s sku=%s productId=%s",
+                userId, storeId, sku, product.id);
 
         return productMapper.toDetailResponse(product);
     }
@@ -121,6 +150,9 @@ public class ProductService {
     @Transactional
     public ProductDetailResponse updateProduct(UUID storeId, UUID productId,
             UUID userId, UpdateProductRequest request) {
+
+        LOG.debugf("action=UPDATE_PRODUCT_START userId=%s storeId=%s productId=%s",
+                userId, storeId, productId);
 
         findStoreOrThrow(storeId);
         checkWritePermission(userId, storeId);
@@ -144,12 +176,20 @@ public class ProductService {
         product.imageUrls = request.imageUrls;
         product.category = category;
 
+        LOG.infof("action=UPDATE_PRODUCT_SUCCESS userId=%s storeId=%s productId=%s sku=%s categoryId=%s",
+                userId, storeId, product.id, product.sku,
+                category != null ? category.id : "none");
+
         return productMapper.toDetailResponse(product);
     }
 
     // Delete
     @Transactional
     public void deleteProduct(UUID storeId, UUID productId, UUID userId) {
+
+        LOG.debugf("action=DELETE_PRODUCT_START userId=%s storeId=%s productId=%s",
+                userId, storeId, productId);
+
         findStoreOrThrow(storeId);
         checkWritePermission(userId, storeId);
 
@@ -157,40 +197,58 @@ public class ProductService {
         validateSameStoreProduct(product, storeId);
 
         productRepository.delete(product);
+
+        LOG.infof("action=DELETE_PRODUCT_SUCCESS userId=%s storeId=%s productId=%s sku=%s",
+                userId, storeId, productId, product.sku);
     }
 
     // helper ------------------------------------------------------------------
     private Store findStoreOrThrow(UUID storeId) {
         return storeRepository.findByIdOptional(storeId)
-                .orElseThrow(() -> new NotFoundException("Store not found"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=STORE_NOT_FOUND storeId=%s", storeId);
+                    return new NotFoundException("Store not found");
+                });
     }
 
     private Category findCategoryOrThrow(UUID categoryId) {
         return categoryRepository.findByIdOptional(categoryId)
-                .orElseThrow(() -> new NotFoundException("Category not found"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=CATEGORY_NOT_FOUND categoryId=%s", categoryId);
+                    return new NotFoundException("Category not found");
+                });
     }
 
     private Product findProductOrThrow(UUID productId) {
         return productRepository.findByIdOptional(productId)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=PRODUCT_NOT_FOUND productId=%s", productId);
+                    return new NotFoundException("Product not found");
+                });
     }
 
     private void checkWritePermission(UUID userId, UUID storeId) {
         boolean canWrite = userRoleRepository.userHasAnyRoleInStore(
                 userId, Set.of("OWNER", "ADMIN", "MANAGER"), storeId);
+
         if (!canWrite) {
+            LOG.warnf("action=WRITE_PERMISSION_DENIED userId=%s storeId=%s", userId, storeId);
             throw new ForbiddenException("You don't have permission to manage this store's products");
         }
     }
 
     private void validateSameStore(Category category, UUID storeId) {
         if (!category.store.id.equals(storeId)) {
+            LOG.warnf("action=CATEGORY_STORE_MISMATCH categoryId=%s categoryStoreId=%s requestedStoreId=%s",
+                    category.id, category.store.id, storeId);
             throw new BadRequestException("Category does not belong to this store");
         }
     }
 
     private void validateSameStoreProduct(Product product, UUID storeId) {
         if (!product.store.id.equals(storeId)) {
+            LOG.warnf("action=PRODUCT_STORE_MISMATCH productId=%s productStoreId=%s requestedStoreId=%s",
+                    product.id, product.store.id, storeId);
             throw new BadRequestException("Product does not belong to this store");
         }
     }

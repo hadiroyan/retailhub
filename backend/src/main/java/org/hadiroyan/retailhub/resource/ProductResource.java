@@ -10,6 +10,7 @@ import org.hadiroyan.retailhub.dto.response.ProductDetailResponse;
 import org.hadiroyan.retailhub.dto.response.ProductResponse;
 import org.hadiroyan.retailhub.service.ProductService;
 import org.hadiroyan.retailhub.utils.CurrentUserUtil;
+import org.jboss.logging.Logger;
 
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -33,6 +34,8 @@ import jakarta.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ProductResource {
 
+    private static final Logger LOG = Logger.getLogger(ProductResource.class);
+
     @Inject
     ProductService productService;
 
@@ -44,10 +47,13 @@ public class ProductResource {
     public Response createProduct(@PathParam("storeId") UUID storeId, CreateProductRequest request) {
 
         UUID userId = currentUser.getUserId();
+        LOG.debugf("action=CREATE_PRODUCT_REQUEST userId=%s storeId=%s sku=%s name=%s",
+                userId, storeId, request.sku, request.name);
 
         ProductDetailResponse response = productService.createProduct(storeId, userId, request);
+
         return Response.status(Response.Status.CREATED)
-                .entity(ApiResponse.created("Product created susccesfully", response))
+                .entity(ApiResponse.created("Product created successfully", response))
                 .build();
     }
 
@@ -60,6 +66,9 @@ public class ProductResource {
             @QueryParam("sortByPrice") String sortByPrice,
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("10") int size) {
+
+        LOG.debugf("action=LIST_PRODUCTS_REQUEST storeId=%s name=%s categoryId=%s page=%d size=%d",
+                storeId, name, categoryId, page, size);
 
         PagedResponse<ProductResponse> result = productService
                 .listProducts(storeId, name, categoryId, sortByPrice, page, size);
@@ -74,11 +83,12 @@ public class ProductResource {
             @PathParam("storeId") UUID storeId,
             @PathParam("sku") String sku) {
 
+        LOG.debugf("action=GET_PRODUCT_BY_SKU_REQUEST storeId=%s sku=%s", storeId, sku);
+
         ProductResponse response = productService.getProductBySku(storeId, sku);
         return Response.ok(ApiResponse.success("Product retrieved successfully", response)).build();
     }
 
-    // Internal endpoint — return costPrice and minStockLevel
     @GET
     @Path("/{sku}/detail")
     @RolesAllowed({ "OWNER", "ADMIN", "MANAGER" })
@@ -87,6 +97,8 @@ public class ProductResource {
             @PathParam("sku") String sku) {
 
         UUID userId = currentUser.getUserId();
+        LOG.debugf("action=GET_PRODUCT_DETAIL_REQUEST userId=%s storeId=%s sku=%s",
+                userId, storeId, sku);
 
         ProductDetailResponse response = productService.getProductDetail(storeId, sku, userId);
         return Response.ok(ApiResponse.success("Product retrieved successfully", response)).build();
@@ -101,6 +113,8 @@ public class ProductResource {
             @Valid UpdateProductRequest request) {
 
         UUID userId = currentUser.getUserId();
+        LOG.debugf("action=UPDATE_PRODUCT_REQUEST userId=%s storeId=%s productId=%s",
+                userId, storeId, productId);
 
         ProductDetailResponse response = productService.updateProduct(storeId, productId, userId, request);
         return Response.ok(ApiResponse.success("Product updated successfully", response)).build();
@@ -114,6 +128,8 @@ public class ProductResource {
             @PathParam("id") UUID productId) {
 
         UUID userId = currentUser.getUserId();
+        LOG.debugf("action=DELETE_PRODUCT_REQUEST userId=%s storeId=%s productId=%s",
+                userId, storeId, productId);
 
         productService.deleteProduct(storeId, productId, userId);
         return Response.ok(ApiResponse.success("Product deleted successfully")).build();
