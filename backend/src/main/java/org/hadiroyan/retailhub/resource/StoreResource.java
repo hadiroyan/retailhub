@@ -37,9 +37,14 @@ public class StoreResource {
     @RolesAllowed("OWNER")
     public Response createStore(@Valid CreateStoreRequest request) {
         String email = currentUser.getEmail();
-        LOG.infof("Create store request for email: %s by user email: %s", request.email, email);
+        LOG.debugf("action=CREATE_STORE_REQUEST email=%s storeName=%s",
+                email, request.name);
 
         StoreResponse response = storeService.createStore(email, request);
+
+        LOG.infof("action=CREATE_STORE_RESPONSE email=%s storeId=%s",
+                email, response.id);
+
         return Response.status(Response.Status.CREATED)
                 .entity(ApiResponse.created("Store created successfully", response))
                 .build();
@@ -53,9 +58,16 @@ public class StoreResource {
         LOG.infof("Get list store request");
 
         UUID userId = currentUser.getUserIdOptional().orElse(null);
-        Set<String> userRole = currentUser.getRoles();
+        Set<String> roles = currentUser.getRoles();
 
-        PagedResponse<StoreResponse> result = storeService.listsStores(userId, userRole, page, size);
+        LOG.debugf("action=LIST_STORES_REQUEST userId=%s roles=%s page=%d size=%d",
+                userId, roles, page, size);
+
+        PagedResponse<StoreResponse> result = storeService.listsStores(userId, roles, page, size);
+
+        LOG.infof("action=LIST_STORES_RESPONSE userId=%s total=%d page=%d size=%d",
+                userId, result.totalElements, page, size);
+
         return Response.ok(ApiResponse.success("Stores retrieved successfully", result)).build();
     }
 
@@ -66,9 +78,16 @@ public class StoreResource {
         LOG.infof("Get store by slug request");
 
         UUID userId = currentUser.getUserIdOptional().orElse(null);
-        Set<String> userRole = currentUser.getRoles();
+        Set<String> roles = currentUser.getRoles();
 
-        StoreResponse store = storeService.getStoreBySlug(slug, userId, userRole);
+        LOG.debugf("action=GET_STORE_BY_SLUG_REQUEST userId=%s slug=%s",
+                userId, slug);
+
+        StoreResponse store = storeService.getStoreBySlug(slug, userId, roles);
+
+        LOG.infof("action=GET_STORE_BY_SLUG_RESPONSE userId=%s storeId=%s slug=%s",
+                userId, store.id, slug);
+
         return Response.ok(ApiResponse.success("Store retrieved successfully", store)).build();
     }
 
@@ -80,10 +99,15 @@ public class StoreResource {
             @Valid UpdateStoreRequest request) {
 
         UUID userId = currentUser.getUserId();
-        Set<String> userRole = currentUser.getRoles();
-        LOG.infof("Update store request from email %s", currentUser.getEmail());
+        Set<String> roles = currentUser.getRoles();
 
-        StoreResponse store = storeService.updateStore(storeId, userId, userRole, request);
+        LOG.debugf("action=UPDATE_STORE_REQUEST userId=%s storeId=%s",
+                userId, storeId);
+
+        StoreResponse store = storeService.updateStore(storeId, userId, roles, request);
+
+        LOG.infof("action=UPDATE_STORE_RESPONSE userId=%s storeId=%s",
+                userId, storeId);
 
         return Response.ok(ApiResponse.success("Store updated successfully", store)).build();
     }
@@ -93,10 +117,15 @@ public class StoreResource {
     @RolesAllowed({ "OWNER", "SUPER_ADMIN" })
     public Response deleteStore(@PathParam("id") UUID storeId) {
         UUID userId = currentUser.getUserId();
-        Set<String> userRole = currentUser.getRoles();
-        LOG.infof("Delete store request from email %s", currentUser.getEmail());
+        Set<String> roles = currentUser.getRoles();
+        LOG.debugf("action=DELETE_STORE_REQUEST userId=%s storeId=%s",
+                userId, storeId);
 
-        storeService.deleteStore(storeId, userId, userRole);
+        storeService.deleteStore(storeId, userId, roles);
+
+        LOG.infof("action=DELETE_STORE_RESPONSE userId=%s storeId=%s",
+                userId, storeId);
+
         return Response.ok(ApiResponse.success("Store deleted successfully")).build();
     }
 
@@ -109,9 +138,15 @@ public class StoreResource {
             @Valid UpdateStoreStatusRequest request) {
 
         UUID userId = currentUser.getUserId();
-        Set<String> userRole = currentUser.getRoles();
+        Set<String> roles = currentUser.getRoles();
 
-        StoreResponse store = storeService.updateStatus(storeId, userId, userRole, request);
+        LOG.debugf("action=UPDATE_STORE_STATUS_REQUEST userId=%s storeId=%s status=%s",
+                userId, storeId, request.status);
+
+        StoreResponse store = storeService.updateStatus(storeId, userId, roles, request);
+
+        LOG.infof("action=UPDATE_STORE_STATUS_RESPONSE userId=%s storeId=%s status=%s",
+                userId, storeId, store.status);
         return Response.ok(ApiResponse.success("Store status updated successfully", store)).build();
     }
 

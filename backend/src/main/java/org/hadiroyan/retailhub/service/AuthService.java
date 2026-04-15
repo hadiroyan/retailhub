@@ -46,21 +46,23 @@ public class AuthService {
 
     public ApiResponse<AuthResponse> login(LoginRequest request) {
         String email = ValidationUtils.normalizeEmail(request.email);
-        LOG.infof("Login attempt for email: %s", email);
+        LOG.debugf("action=LOGIN_START email=%s", email);
 
         User user = userRepository.findByEmailWithRolesAndPrivileges(email)
                 .orElseThrow(() -> {
-                    LOG.warnf("Login failed: user not found for email: %s", email);
+                    LOG.warnf("action=LOGIN_FAILED_USER_NOT_FOUND email=%s", email);
                     return new UnauthorizedException("Invalid email or password");
                 });
 
         if (!user.enabled) {
-            LOG.warnf("Login attempt for disabled account: %s", email);
+            LOG.warnf("action=LOGIN_FAILED_ACCOUNT_DISABLED email=%s userId=%s",
+                    email, user.id);
             throw new AccountDisabledException();
         }
 
         if (!passwordService.verify(request.password, user.password)) {
-            LOG.warnf("Login failed: incorrect password for email: %s", email);
+            LOG.warnf("action=LOGIN_FAILED_INVALID_PASSWORD email=%s userId=%s",
+                    email, user.id);
             throw new UnauthorizedException("Invalid email or password");
         }
 
@@ -70,28 +72,40 @@ public class AuthService {
         authResponse.token = token;
         authResponse.user = UserResponse.fromUser(user);
 
-        LOG.infof("Successful login for email: %s", email);
+        LOG.infof("action=LOGIN_SUCCESS userId=%s email=%s",
+                user.id, email);
+
         return ApiResponse.success("Login successful", authResponse);
     }
 
     @Transactional
     public ApiResponse<UserResponse> registerOwner(RegisterOwnerRequest request) {
-        LOG.infof("Register owner request by %s", request.email);
-        return registerUser(
+        String email = ValidationUtils.normalizeEmail(request.email);
+        LOG.debugf("action=REGISTER_OWNER_START email=%s", email);
+
+        ApiResponse<UserResponse> response = registerUser(
                 request.email,
                 request.password,
                 request.fullName,
                 "OWNER");
+
+        LOG.infof("action=REGISTER_OWNER_SUCCESS email=%s", email);
+        return response;
     }
 
     @Transactional
     public ApiResponse<UserResponse> registerCustomer(RegisterCustomerRequest request) {
-        LOG.infof("Register customer request by %s", request.email);
-        return registerUser(
+        String email = ValidationUtils.normalizeEmail(request.email);
+        LOG.debugf("action=REGISTER_CUSTOMER_START email=%s", email);
+
+        ApiResponse<UserResponse> response = registerUser(
                 request.email,
                 request.password,
                 request.fullName,
                 "CUSTOMER");
+
+        LOG.infof("action=REGISTER_CUSTOMER_SUCCESS email=%s", email);
+        return response;
     }
 
     private ApiResponse<UserResponse> registerUser(
@@ -106,7 +120,8 @@ public class AuthService {
         ValidationUtils.validateFullName(fullname);
 
         if (userRepository.existsByEmail(email)) {
-            LOG.warnf("Registration attempt with existing email: %s", email);
+            LOG.warnf("action=REGISTER_FAILED_EMAIL_EXISTS email=%s role=%s",
+                    email, roleName);
             throw new EmailAlreadyExistsException(email);
         }
 
@@ -117,23 +132,34 @@ public class AuthService {
         userRepository.persist(user);
 
         Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new RoleNotFoundException(roleName));
+                .orElseThrow(() -> {
+                    LOG.errorf("action=ROLE_NOT_FOUND role=%s", roleName);
+                    return new RoleNotFoundException(roleName);
+                });
 
         UserRole userRole = new UserRole(user, role);
         user.userRoles.add(userRole);
         userRoleRepository.persist(userRole);
 
-        LOG.infof("Successfully registered %s: %s", roleName.toLowerCase(), email);
+        LOG.infof("action=REGISTER_SUCCESS userId=%s email=%s role=%s",
+                user.id, email, roleName);
+
         return ApiResponse.created(
                 "Account created successfully",
                 UserResponse.fromUser(user));
     }
 
     public UserResponse getCurrentUser(String email) {
-        LOG.infof("Get current user request for email: %s", email);
+        LOG.debugf("action=GET_CURRENT_USER_START email=%s", email);
 
         User user = userRepository.findByEmailWithRolesAndPrivileges(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=USER_NOT_FOUND email=%s", email);
+                    return new NotFoundException("User not found");
+                });
+
+        LOG.infof("action=GET_CURRENT_USER_SUCCESS userId=%s email=%s",
+                user.id, email);
 
         return UserResponse.fromUser(user);
     }

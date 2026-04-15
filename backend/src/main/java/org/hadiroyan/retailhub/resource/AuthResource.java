@@ -44,10 +44,12 @@ public class AuthResource {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response login(@Valid LoginRequest request) {
-        LOG.infof("Login request for email: %s", request.email);
+        LOG.debugf("action=LOGIN_REQUEST email=%s", request.email);
 
         ApiResponse<AuthResponse> response = authService.login(request);
         NewCookie cookie = cookieUtil.createJwtCookie(response.data.token);
+
+        LOG.infof("action=LOGIN_RESPONSE email=%s", request.email);
 
         return Response.ok(response)
                 .cookie(cookie)
@@ -59,7 +61,7 @@ public class AuthResource {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response registerCustomer(@Valid RegisterCustomerRequest request) {
-        LOG.infof("Customer registration request for email: %s", request.email);
+        LOG.debugf("action=REGISTER_CUSTOMER_REQUEST email=%s", request.email);
 
         ApiResponse<UserResponse> response = authService.registerCustomer(request);
 
@@ -76,6 +78,7 @@ public class AuthResource {
         registrationResponse.data = loginResponse.data;
         NewCookie cookie = cookieUtil.createJwtCookie(loginResponse.data.token);
 
+        LOG.infof("action=REGISTER_CUSTOMER_RESPONSE email=%s", request.email);
         return Response.status(Response.Status.CREATED)
                 .entity(registrationResponse)
                 .cookie(cookie)
@@ -87,7 +90,7 @@ public class AuthResource {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response registerOwner(@Valid RegisterOwnerRequest request) {
-        LOG.infof("Owner registration request for email: %s", request.email);
+        LOG.debugf("action=REGISTER_OWNER_REQUEST email=%s", request.email);
 
         ApiResponse<UserResponse> response = authService.registerOwner(request);
 
@@ -104,6 +107,7 @@ public class AuthResource {
         registrationResponse.data = loginResponse.data;
         NewCookie cookie = cookieUtil.createJwtCookie(loginResponse.data.token);
 
+        LOG.infof("action=REGISTER_OWNER_RESPONSE email=%s", request.email);
         return Response.status(Response.Status.CREATED)
                 .entity(registrationResponse)
                 .cookie(cookie)
@@ -117,9 +121,12 @@ public class AuthResource {
     public Response getCurrentUser() {
         // Get email from JWT token's upn claim (principal name)
         String email = jwt.getName();
-        LOG.infof("Get current user request for email: %s", email);
+        LOG.debugf("action=GET_CURRENT_USER_REQUEST email=%s", email);
 
         UserResponse userResponse = authService.getCurrentUser(email);
+
+        LOG.infof("action=GET_CURRENT_USER_RESPONSE email=%s userId=%s",
+                email, userResponse.id);
 
         return Response.ok(ApiResponse.success(
                 "Current user retrieved successfully",
@@ -130,8 +137,11 @@ public class AuthResource {
     @Path("/logout")
     @PermitAll
     public Response logout() {
-        LOG.info("Logout request");
+        LOG.debug("action=LOGOUT_REQUEST");
+
         var logoutCookie = cookieUtil.createLogoutCookie();
+
+        LOG.info("action=LOGOUT_RESPONSE");
 
         return Response.ok(ApiResponse.success("Logout successful"))
                 .cookie(logoutCookie)

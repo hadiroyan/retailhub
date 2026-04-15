@@ -46,9 +46,14 @@ public class CategoryResource {
     public Response createCategory(@PathParam("storeId") UUID storeId, @Valid CreateCategoryRequest request) {
 
         UUID userId = currentUser.getUserId();
-        LOG.infof("Create category request from user id: %s ", userId);
+        LOG.debugf("action=CREATE_CATEGORY_REQUEST userId=%s storeId=%s name=%s",
+                userId, storeId, request.name);
 
         CategoryResponse response = categoryService.createCategory(storeId, userId, request);
+
+        LOG.infof("action=CREATE_CATEGORY_RESPONSE userId=%s storeId=%s categoryId=%s",
+                userId, storeId, response.id);
+
         return Response.status(Response.Status.CREATED)
                 .entity(ApiResponse.created("Category created successfully", response))
                 .build();
@@ -61,9 +66,14 @@ public class CategoryResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("10") int size) {
 
-        LOG.info("Get list categories request");
+        LOG.debugf("action=LIST_CATEGORIES_REQUEST storeId=%s page=%d size=%d",
+                storeId, page, size);
 
         PagedResponse<CategoryResponse> result = categoryService.listCategories(storeId, page, size);
+
+        LOG.infof("action=LIST_CATEGORIES_RESPONSE storeId=%s total=%d page=%d size=%d",
+                storeId, result.totalElements, page, size);
+
         return Response.ok(ApiResponse.success("Categories retrieved successfully", result)).build();
     }
 
@@ -74,8 +84,13 @@ public class CategoryResource {
             @PathParam("storeId") UUID storeId,
             @PathParam("slug") String slug) {
 
-        LOG.infof("Get category by slug: %s", slug);
+        LOG.debugf("action=GET_CATEGORY_BY_SLUG_REQUEST storeId=%s slug=%s",
+                storeId, slug);
+
         CategoryResponse response = categoryService.getCategoryBySlug(storeId, slug);
+
+        LOG.infof("action=GET_CATEGORY_BY_SLUG_RESPONSE storeId=%s categoryId=%s slug=%s",
+                storeId, response.id, slug);
         return Response.ok(ApiResponse.success("Category retrieved successfully", response)).build();
     }
 
@@ -88,8 +103,13 @@ public class CategoryResource {
             @Valid UpdateCategoryRequest request) {
 
         UUID userId = currentUser.getUserId();
-        LOG.infof("Update category request from user id: %s ", userId);
+        LOG.debugf("action=UPDATE_CATEGORY_REQUEST userId=%s storeId=%s categoryId=%s",
+                userId, storeId, categoryId);
+
         CategoryResponse response = categoryService.updateCategory(storeId, categoryId, userId, request);
+
+        LOG.infof("action=UPDATE_CATEGORY_RESPONSE userId=%s storeId=%s categoryId=%s",
+                userId, storeId, categoryId);
         return Response.ok(ApiResponse.success("Category updated successfully", response)).build();
     }
 
@@ -101,9 +121,13 @@ public class CategoryResource {
             @PathParam("id") UUID categoryId) {
 
         UUID userId = currentUser.getUserId();
-        LOG.infof("Delete category request from user id: %s ", userId);
+        LOG.debugf("action=DELETE_CATEGORY_REQUEST userId=%s storeId=%s categoryId=%s",
+                userId, storeId, categoryId);
 
         categoryService.deleteCategory(storeId, categoryId, userId);
+
+        LOG.infof("action=DELETE_CATEGORY_RESPONSE userId=%s storeId=%s categoryId=%s",
+                userId, storeId, categoryId);
         return Response.ok(ApiResponse.success("Category deleted successfully")).build();
     }
 }

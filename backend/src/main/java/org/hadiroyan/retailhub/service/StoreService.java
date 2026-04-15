@@ -53,10 +53,14 @@ public class StoreService {
 
     @Transactional
     public StoreResponse createStore(String email, CreateStoreRequest request) {
-        User owner = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
+        LOG.debugf("action=CREATE_STORE_START email=%s storeName=%s",
+                email, request.name);
 
-        LOG.infof("create store with store name: %s with owner email: %s", request.name, owner.email);
+        User owner = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=USER_NOT_FOUND email=%s", email);
+                    return new NotFoundException("User not found");
+                });
 
         Store store = new Store();
         store.owner = owner;
@@ -72,36 +76,51 @@ public class StoreService {
 
         assignOwnerRole(owner, store);
 
+        LOG.infof("action=CREATE_STORE_SUCCESS userId=%s storeId=%s storeName=%s slug=%s",
+                owner.id, store.id, store.name, store.slug);
+
         return storeMapper.toResponse(store);
     }
 
     private void assignOwnerRole(User owner, Store store) {
+        LOG.debugf("action=ASSIGN_OWNER_ROLE_START userId=%s storeId=%s",
+                owner.id, store.id);
+
         Role role = roleRepository.findByName("OWNER")
-                .orElseThrow(() -> new NotFoundException("Role is not found [OWNER]"));
+                .orElseThrow(() -> {
+                    LOG.error("action=ROLE_NOT_FOUND role=OWNER");
+                    return new NotFoundException("Role not found");
+                });
 
         UserRole userRole = new UserRole();
         userRole.user = owner;
         userRole.storeId = store.id;
         userRole.role = role;
 
-        LOG.infof("Assign owner, role and store");
         userRoleRepository.persist(userRole);
+        LOG.infof("action=ASSIGN_OWNER_ROLE_SUCCESS userId=%s storeId=%s role=OWNER",
+                owner.id, store.id);
     }
 
-    public PagedResponse<StoreResponse> listsStores(UUID ownerId, Set<String> roles, int page, int size) {
+    public PagedResponse<StoreResponse> listsStores(UUID userId, Set<String> roles, int page, int size) {
+
+        LOG.debugf("action=LIST_STORES_START userId=%s roles=%s page=%d size=%d",
+                userId, roles, page, size);
+
         List<Store> stores;
         long total;
+        String accessType;
 
         if (roles.contains("SUPER_ADMIN")) {
-            LOG.info("Get lists product for SUPER_ADMIN");
+            accessType = "SUPER_ADMIN";
             stores = storeRepository.findAllPaged(page, size);
             total = storeRepository.countAll();
         } else if (roles.contains("OWNER")) {
-            LOG.infof("Get lists product for OWNER with owner ID: %s:", ownerId);
-            stores = storeRepository.findByOwner(ownerId, page, size);
-            total = storeRepository.countByOwner(ownerId);
+            accessType = "OWNER";
+            stores = storeRepository.findByOwner(userId, page, size);
+            total = storeRepository.countByOwner(userId);
         } else {
-            LOG.info("Get lists product for PUBLIC");
+            accessType = "PUBLIC";
             stores = storeRepository.findAllActive(page, size);
             total = storeRepository.countAllActive();
         }
@@ -110,12 +129,22 @@ public class StoreService {
                 .map(storeMapper::toResponse)
                 .toList();
 
+        LOG.infof("action=LIST_STORES_SUCCESS userId=%s accessType=%s total=%d page=%d size=%d",
+                userId, accessType, total, page, size);
+
         return new PagedResponse<>(data, page, size, total);
     }
 
     public StoreResponse getStoreBySlug(String slug, UUID userId, Set<String> roles) {
+        LOG.debugf("action=GET_STORE_BY_SLUG_START userId=%s slug=%s",
+                userId, slug);
+
         Store store = storeRepository.findBySlug(slug)
-                .orElseThrow(() -> new NotFoundException("Store not found"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=STORE_NOT_FOUND slug=%s", slug);
+                    return new NotFoundException("Store not found");
+                });
+        ;
 
         boolean isActive = StoreStatus.ACTIVE.name().equals(store.status);
         boolean isSuperAdmin = roles.contains("SUPER_ADMIN");
@@ -123,8 +152,13 @@ public class StoreService {
         LOG.infof("Get store by slug with isActive[%b] isSuperAdmin[%b] isOwner[%b]", isActive, isSuperAdmin, isOwner);
 
         if (!isActive && !isSuperAdmin && !isOwner) {
+            LOG.warnf("action=STORE_ACCESS_DENIED userId=%s storeId=%s slug=%s",
+                    userId, store.id, slug);
             throw new NotFoundException("Store not found");
         }
+
+        LOG.infof("action=GET_STORE_BY_SLUG_SUCCESS userId=%s storeId=%s slug=%s",
+                userId, store.id, slug);
 
         return storeMapper.toResponse(store);
     }
@@ -132,10 +166,16 @@ public class StoreService {
     @Transactional
     public StoreResponse updateStore(UUID storeId, UUID userId, Set<String> roles,
             UpdateStoreRequest request) {
-        Store store = storeRepository.findByIdOptional(storeId)
-                .orElseThrow(() -> new NotFoundException("Store not found"));
 
-        LOG.infof("Update store %s", store.name);
+        LOG.debugf("action=UPDATE_STORE_START userId=%s storeId=%s",
+                userId, storeId);
+
+        Store store = storeRepository.findByIdOptional(storeId)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=STORE_NOT_FOUND storeId=%s", storeId);
+                    return new NotFoundException("Store not found");
+                });
+
         assertCanModify(store, userId, roles);
 
         store.name = request.name;
@@ -145,26 +185,41 @@ public class StoreService {
         store.phone = request.phone;
         store.email = request.email;
 
+        LOG.infof("action=UPDATE_STORE_SUCCESS userId=%s storeId=%s storeName=%s",
+                userId, store.id, store.name);
+
         return storeMapper.toResponse(store);
     }
 
     @Transactional
     public void deleteStore(UUID storeId, UUID userId, Set<String> roles) {
+        LOG.debugf("action=DELETE_STORE_START userId=%s storeId=%s",
+                userId, storeId);
+
         Store store = storeRepository.findByIdOptional(storeId)
-                .orElseThrow(() -> new NotFoundException("Store not found"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=STORE_NOT_FOUND storeId=%s", storeId);
+                    return new NotFoundException("Store not found");
+                });
 
-        LOG.infof("Delete store %s", store.name);
         assertCanModify(store, userId, roles);
-
         storeRepository.delete(store);
+
+        LOG.infof("action=DELETE_STORE_SUCCESS userId=%s storeId=%s",
+                userId, storeId);
     }
 
     @Transactional
     public StoreResponse updateStatus(UUID storeId, UUID userId, Set<String> roles, UpdateStoreStatusRequest request) {
-        Store store = storeRepository.findByIdOptional(storeId)
-                .orElseThrow(() -> new NotFoundException("Store not found"));
+        LOG.debugf("action=UPDATE_STORE_STATUS_START userId=%s storeId=%s status=%s",
+                userId, storeId, request.status);
 
-        LOG.infof("Update store status %s", store.name);
+        Store store = storeRepository.findByIdOptional(storeId)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=STORE_NOT_FOUND storeId=%s", storeId);
+                    return new NotFoundException("Store not found");
+                });
+
         assertCanModify(store, userId, roles);
         StoreStatus newStatus = StoreStatus.valueOf(request.status);
 
@@ -172,20 +227,26 @@ public class StoreService {
         // This is the platform's right (SUPER_ADMIN)
         boolean isSuperAdmin = roles.contains("SUPER_ADMIN");
         if (!isSuperAdmin && newStatus == StoreStatus.SUSPEND) {
+            LOG.warnf("action=FORBIDDEN_SUSPEND_STORE userId=%s storeId=%s",
+                    userId, storeId);
             throw new ForbiddenException("Only SUPER_ADMIN can suspend a store");
         }
 
         store.status = newStatus.name();
+
+        LOG.infof("action=UPDATE_STORE_STATUS_SUCCESS userId=%s storeId=%s status=%s",
+                userId, storeId, newStatus.name());
         return storeMapper.toResponse(store);
     }
 
     private void assertCanModify(Store store, UUID userId, Set<String> roles) {
         boolean isSuperAdmin = roles.contains("SUPER_ADMIN");
         boolean isOwner = store.owner != null && store.owner.id.equals(userId);
-        LOG.infof("Check permission: [isSuperAdmin= %b] [isOwner= %b]", isSuperAdmin, isOwner);
 
         if (!isSuperAdmin && !isOwner) {
-            throw new ForbiddenException("You don't have permission to modify this store");
+            LOG.warnf("action=STORE_MODIFY_DENIED userId=%s storeId=%s",
+                    userId, store.id);
+            throw new ForbiddenException("No permission");
         }
     }
 }

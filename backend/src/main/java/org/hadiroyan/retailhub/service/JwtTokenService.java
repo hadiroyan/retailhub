@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hadiroyan.retailhub.model.User;
-import org.jboss.logging.Logger;
 
 import io.smallrye.jwt.build.Jwt;
 import io.smallrye.jwt.build.JwtClaimsBuilder;
@@ -15,7 +14,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class JwtTokenService {
 
-    private static final Logger LOG = Logger.getLogger(JwtTokenService.class);
 
     @ConfigProperty(name = "mp.jwt.verify.issuer")
     String issuer;
@@ -43,8 +41,6 @@ public class JwtTokenService {
 
         Set<String> roles = extractRoles(user);
         Set<String> privileges = extractPrivileges(user);
-
-        LOG.debugf("Generating token for userId=%s", user.id);
 
         JwtClaimsBuilder builder = Jwt.issuer(issuer)
                 .upn(user.email)
@@ -82,7 +78,6 @@ public class JwtTokenService {
 
         if (claimName != null) {
             builder.claim(claimName, storeData);
-            LOG.debugf("Added %s claim to token", claimName);
         }
     }
 

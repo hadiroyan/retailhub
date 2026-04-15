@@ -44,11 +44,11 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse createCategory(UUID storeId, UUID userId, CreateCategoryRequest request) {
-        LOG.infof("Create category request for category: %s ", request.name);
+        LOG.debugf("action=CREATE_CATEGORY_START userId=%s storeId=%s name=%s",
+                userId, storeId, request.name);
         Store store = findStoreOrThrow(storeId);
         checkWritePermission(userId, storeId);
 
-        LOG.infof("Validate create category: %s", request.name);
         Category parent = null;
         if (request.parentId != null) {
             parent = findCategoryOrThrow(request.parentId);
@@ -69,15 +69,16 @@ public class CategoryService {
         category.parent = parent;
 
         categoryRepository.persist(category);
-        LOG.infof("Success persist category %s", request.name);
+        LOG.infof("action=CREATE_CATEGORY_SUCCESS userId=%s storeId=%s categoryId=%s slug=%s",
+                userId, storeId, category.id, category.slug);
 
         // Single category — fetch data for one category only
         return buildCategoryResponse(category);
     }
 
     public PagedResponse<CategoryResponse> listCategories(UUID storeId, int page, int size) {
-        LOG.infof("Get list category for store id: %s", storeId);
-        LOG.info("Validate store and category");
+        LOG.debugf("action=LIST_CATEGORIES_START storeId=%s page=%d size=%d",
+                storeId, page, size);
         findStoreOrThrow(storeId);
 
         List<Category> roots = categoryRepository.findRootsByStore(storeId);
@@ -94,17 +95,25 @@ public class CategoryService {
                 .map(c -> categoryMapper.toResponse(c, productCounts, childrenMap))
                 .toList();
 
-        LOG.infof("Success get list category page %d and size %d", page, size);
+        LOG.infof("action=LIST_CATEGORIES_SUCCESS storeId=%s total=%d page=%d size=%d",
+                storeId, total, page, size);
         return new PagedResponse<>(content, page, size, total);
     }
 
     public CategoryResponse getCategoryBySlug(UUID storeId, String slug) {
-        LOG.infof("Get category by slug: %s", slug);
+        LOG.debugf("action=GET_CATEGORY_BY_SLUG_START storeId=%s slug=%s",
+                storeId, slug);
         findStoreOrThrow(storeId);
 
         Category category = categoryRepository.findByStoreAndSlug(storeId, slug)
-                .orElseThrow(() -> new NotFoundException("Category not found"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=CATEGORY_NOT_FOUND storeId=%s slug=%s",
+                            storeId, slug);
+                    return new NotFoundException("Category not found");
+                });
 
+        LOG.infof("action=GET_CATEGORY_BY_SLUG_SUCCESS storeId=%s categoryId=%s slug=%s",
+                storeId, category.id, slug);
         return buildCategoryResponse(category);
     }
 
@@ -112,8 +121,8 @@ public class CategoryService {
     public CategoryResponse updateCategory(UUID storeId, UUID categoryId,
             UUID userId, UpdateCategoryRequest request) {
 
-        LOG.infof("Update cateogry: %s with user ID: %s", String.valueOf(categoryId), String.valueOf(userId));
-        LOG.infof("validate for update category by user ID: %s", String.valueOf(userId));
+        LOG.debugf("action=UPDATE_CATEGORY_START userId=%s storeId=%s categoryId=%s",
+                userId, storeId, categoryId);
         findStoreOrThrow(storeId);
         checkWritePermission(userId, storeId);
 
@@ -127,7 +136,6 @@ public class CategoryService {
             validateRootCategory(parent);
             validateNotSelf(category, parent);
         }
-        LOG.infof("Updating category ID: %s by user ID: %s", String.valueOf(categoryId), String.valueOf(userId));
 
         category.name = request.name;
         category.slug = generateSlugForUpdate(request.name, storeId, categoryId);
@@ -135,13 +143,16 @@ public class CategoryService {
         category.imageUrl = request.imageUrl;
         category.parent = parent;
 
-        LOG.infof("Success persist update category %s", request.name);
+        LOG.infof("action=UPDATE_CATEGORY_SUCCESS userId=%s storeId=%s categoryId=%s slug=%s",
+                userId, storeId, category.id, category.slug);
         return buildCategoryResponse(category);
     }
 
     @Transactional
     public void deleteCategory(UUID storeId, UUID categoryId, UUID userId) {
-        LOG.infof("validate for delete category ID: %s", String.valueOf(categoryId));
+        LOG.debugf("action=DELETE_CATEGORY_START userId=%s storeId=%s categoryId=%s",
+                userId, storeId, categoryId);
+
         findStoreOrThrow(storeId);
         checkWritePermission(userId, storeId);
 
@@ -149,38 +160,46 @@ public class CategoryService {
         validateSameStore(category, storeId);
 
         categoryRepository.delete(category);
-        LOG.infof("Success delete category ID: %s by user ID: %s", String.valueOf(categoryId), String.valueOf(userId));
+        LOG.infof("action=DELETE_CATEGORY_SUCCESS userId=%s storeId=%s categoryId=%s",
+                userId, storeId, categoryId);
     }
 
     // Helper -------------------------------------------------
     private Store findStoreOrThrow(UUID storeId) {
-        LOG.infof("find store with id: %s", storeId);
-        return storeRepository.findByIdOptional(storeId).orElseThrow(() -> new NotFoundException("Store not found!"));
+        return storeRepository.findByIdOptional(storeId)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=STORE_NOT_FOUND storeId=%s", storeId);
+                    return new NotFoundException("Store not found");
+                });
     }
 
     private Category findCategoryOrThrow(UUID categoryId) {
-        LOG.infof("find category with id: %s", categoryId);
         return categoryRepository.findByIdOptional(categoryId)
-                .orElseThrow(() -> new NotFoundException("Category not found!"));
+                .orElseThrow(() -> {
+                    LOG.warnf("action=CATEGORY_NOT_FOUND categoryId=%s", categoryId);
+                    return new NotFoundException("Category not found");
+                });
     }
 
     private void validateSameStore(Category category, UUID storeId) {
-        LOG.infof("validate same store for category (slug): %s", category.slug);
         if (!category.store.id.equals(storeId)) {
+            LOG.warnf("action=CATEGORY_STORE_MISMATCH categoryId=%s categoryStoreId=%s requestedStoreId=%s",
+                    category.id, category.store.id, storeId);
             throw new BadRequestException("Category does not belong to this store");
         }
     }
 
     private void validateRootCategory(Category category) {
-        LOG.infof("validate root for category (slug): %s", category.slug);
         if (category.parent != null) {
-            throw new BadRequestException("Cannot assign a child category as parent — maximum 2 levels allowed");
+            LOG.warnf("action=INVALID_PARENT_CATEGORY categoryId=%s parentId=%s",
+                    category.id, category.parent.id);
+            throw new BadRequestException("Max 2 levels allowed");
         }
     }
 
     private void validateNotSelf(Category category, Category parent) {
-        LOG.infof("validate category not itself for category (slug): %s", category.slug);
         if (category.id.equals(parent.id)) {
+            LOG.warnf("action=CATEGORY_SELF_PARENT categoryId=%s", category.id);
             throw new BadRequestException("Category cannot be its own parent");
         }
     }
@@ -188,9 +207,11 @@ public class CategoryService {
     private void checkWritePermission(UUID userId, UUID storeId) {
         boolean canWrite = userRoleRepository.userHasAnyRoleInStore(
                 userId, Set.of("OWNER", "ADMIN", "MANAGER"), storeId);
-        LOG.infof("check permission for user id: %s [is can write: %b]", String.valueOf(userId), canWrite);
+
         if (!canWrite) {
-            throw new ForbiddenException("You don't have permission to manage this store's categories");
+            LOG.warnf("action=CATEGORY_WRITE_DENIED userId=%s storeId=%s",
+                    userId, storeId);
+            throw new ForbiddenException("No permission");
         }
     }
 
