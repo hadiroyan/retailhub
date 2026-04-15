@@ -92,4 +92,25 @@ public class UserRoleRepository implements PanacheRepository<UserRole> {
     public long deleteByUserId(UUID userId) {
         return delete("user.id", userId);
     }
+
+    public Optional<UserRole> findEmployeeRoleInStore(UUID userId, UUID storeId) {
+        return find("""
+                FROM UserRole ur
+                JOIN ur.role r
+                WHERE ur.user.id = ?1
+                AND ur.storeId = ?2
+                AND r.name IN ('ADMIN', 'MANAGER', 'STAFF')
+                """,
+                userId, storeId)
+                .firstResultOptional();
+    }
+
+    public boolean userHasAnyRoleInStoreAlready(UUID userId, UUID storeId) {
+        return count("""
+                FROM UserRole ur
+                WHERE ur.user.id = ?1
+                AND ur.storeId = ?2
+                """,
+                userId, storeId) > 0;
+    }
 }

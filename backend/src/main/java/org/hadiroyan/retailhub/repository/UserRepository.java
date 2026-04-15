@@ -2,10 +2,12 @@ package org.hadiroyan.retailhub.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.hadiroyan.retailhub.model.User;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
@@ -70,6 +72,31 @@ public class UserRepository implements PanacheRepository<User> {
                 WHERE r.name = ?1
                 """,
                 roleName);
+    }
+
+    public List<User> findEmployeesByStore(UUID storeId, int page, int size) {
+        return find("""
+                SELECT DISTINCT u FROM User u
+                JOIN u.userRoles ur
+                JOIN ur.role r
+                WHERE ur.storeId = ?1
+                AND r.name IN ('ADMIN', 'MANAGER', 'STAFF')
+                ORDER BY u.fullName ASC
+                """,
+                storeId)
+                .page(Page.of(page, size))
+                .list();
+    }
+
+    public long countEmployeesByStore(UUID storeId) {
+        return count("""
+                FROM User u
+                JOIN u.userRoles ur
+                JOIN ur.role r
+                WHERE ur.storeId = ?1
+                AND r.name IN ('ADMIN', 'MANAGER', 'STAFF')
+                """,
+                storeId);
     }
 
 }
