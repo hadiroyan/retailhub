@@ -18,7 +18,10 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         // Authentication errors (401)
         if (exception instanceof AccountLockedException) {
             AccountLockedException ale = (AccountLockedException) exception;
-            LOG.warnf("Account locked: %s", ale.getEmail());
+            LOG.warnf("action=AUTH_ACCOUNT_LOCKED email=%s retryAfter=%d message=%s",
+                    ale.getEmail(),
+                    ale.getLockDurationMinutes(),
+                    ale.getMessage());
             return Response
                     .status(Response.Status.UNAUTHORIZED)
                     .entity(ApiResponse.error(401, exception.getMessage()))
@@ -27,7 +30,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         if (exception instanceof AccountDisabledException) {
-            LOG.warnf("Disabled account login attempt: %s", exception.getMessage());
+            LOG.warnf("action=AUTH_ACCOUNT_DISABLED message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.UNAUTHORIZED)
                     .entity(ApiResponse.unauthorized(exception.getMessage()))
@@ -35,7 +38,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         if (exception instanceof InvalidTokenException) {
-            LOG.debugf("Invalid token: %s", exception.getMessage());
+            LOG.debugf("action=AUTH_INVALID_TOKEN message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.UNAUTHORIZED)
                     .entity(ApiResponse.unauthorized(exception.getMessage()))
@@ -43,7 +46,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         if (exception instanceof UnauthorizedException) {
-            LOG.debugf("Unauthorized: %s", exception.getMessage());
+            LOG.debugf("action=AUTH_UNAUTHORIZED message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.UNAUTHORIZED)
                     .entity(ApiResponse.unauthorized(exception.getMessage()))
@@ -52,7 +55,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
         // Forbidden (403)
         if (exception instanceof InvalidTenantAccessException) {
-            LOG.warnf("Invalid tenant access: %s", exception.getMessage());
+            LOG.warnf("action=FORBIDDEN_INVALID_TENANT message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.FORBIDDEN)
                     .entity(ApiResponse.error(403, exception.getMessage()))
@@ -60,7 +63,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         if (exception instanceof ForbiddenException) {
-            LOG.warnf("Forbidden: %s", exception.getMessage());
+            LOG.warnf("action=FORBIDDEN_ACCESS_DENIED message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.FORBIDDEN)
                     .entity(ApiResponse.error(403, exception.getMessage()))
@@ -69,7 +72,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
         // Not found errors (404)
         if (exception instanceof UserNotFoundException) {
-            LOG.debugf("User not found: %s", exception.getMessage());
+            LOG.debugf("action=USER_NOT_FOUND message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .entity(ApiResponse.notFound(exception.getMessage()))
@@ -77,7 +80,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         if (exception instanceof RoleNotFoundException) {
-            LOG.errorf("Role not found (system config issue): %s", exception.getMessage());
+            LOG.errorf("action=ROLE_NOT_FOUND message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .entity(ApiResponse.notFound(exception.getMessage()))
@@ -85,7 +88,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         if (exception instanceof TenantNotFoundException) {
-            LOG.warnf("Tenant not found: %s", exception.getMessage());
+            LOG.warnf("action=TENANT_NOT_FOUND message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .entity(ApiResponse.notFound(exception.getMessage()))
@@ -93,7 +96,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         if (exception instanceof NotFoundException) {
-            LOG.debugf("Resource not found: %s", exception.getMessage());
+            LOG.debugf("action=RESOURCE_NOT_FOUND message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .entity(ApiResponse.notFound(exception.getMessage()))
@@ -102,24 +105,19 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
         // Validation Errors (400)
         if (exception instanceof InvalidEmailFormatException ||
-                exception instanceof WeakPasswordException) {
-            LOG.debugf("Validation error: %s", exception.getMessage());
-            return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity(ApiResponse.badRequest(exception.getMessage()))
-                    .build();
-        }
+                exception instanceof WeakPasswordException ||
+                exception instanceof ValidationException ||
+                exception instanceof BadRequestException) {
 
-        if (exception instanceof ValidationException) {
-            LOG.debugf("Validation error: %s", exception.getMessage());
-            return Response
-                    .status(Response.Status.BAD_REQUEST)
+            LOG.debugf("action=BAD_REQUEST_VALIDATION message=%s", exception.getMessage());
+
+            return Response.status(Response.Status.BAD_REQUEST)
                     .entity(ApiResponse.badRequest(exception.getMessage()))
                     .build();
         }
 
         if (exception instanceof BadRequestException) {
-            LOG.debugf("Bad request: %s", exception.getMessage());
+            LOG.debugf("action=BAD_REQUEST message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity(ApiResponse.badRequest(exception.getMessage()))
@@ -134,7 +132,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
                     .findFirst()
                     .orElse("Validation failed");
 
-            LOG.debugf("Constraint violation: %s", message);
+            LOG.debugf("action=BAD_REQUEST_CONSTRAINT message=%s", message);
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity(ApiResponse.badRequest(message))
@@ -143,7 +141,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
         // Conflict (409 Conflict)
         if (exception instanceof EmailAlreadyExistsException || exception instanceof ConflictException) {
-            LOG.debugf("Conflict: %s", exception.getMessage());
+            LOG.warnf("action=CONFLICT message=%s", exception.getMessage());
             return Response
                     .status(Response.Status.CONFLICT)
                     .entity(ApiResponse.error(409, exception.getMessage()))
@@ -153,7 +151,10 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         // Rate Limiting (429)
         if (exception instanceof RateLimitExceededException) {
             RateLimitExceededException rle = (RateLimitExceededException) exception;
-            LOG.warnf("Rate limit exceeded: %s", exception.getMessage());
+            LOG.warnf("action=RATE_LIMIT_EXCEEDED retryAfter=%d message=%s",
+                    rle.getRetryAfterSeconds(),
+                    rle.getMessage());
+
             return Response
                     .status(429) // Too Many Requests
                     .entity(ApiResponse.error(429, exception.getMessage()))
@@ -163,7 +164,9 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
         // Data Integrity
         if (exception instanceof DataIntegrityException) {
-            LOG.error("Data integrity violation", exception);
+            LOG.errorf(exception,
+                    "action=DATA_INTEGRITY_ERROR message=%s",
+                    exception.getMessage());
             return Response
                     .status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(ApiResponse.error(500, "Data integrity error occurred"))
@@ -174,7 +177,9 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         if (exception instanceof jakarta.ws.rs.WebApplicationException) {
             jakarta.ws.rs.WebApplicationException wae = (jakarta.ws.rs.WebApplicationException) exception;
             int status = wae.getResponse().getStatus();
-            LOG.warnf("JAX-RS exception: %d %s", status, exception.getMessage());
+            LOG.warnf("action=WEB_EXCEPTION status=%d message=%s",
+                    status,
+                    exception.getMessage());
             return Response
                     .status(status)
                     .entity(ApiResponse.error(status, exception.getMessage()))
@@ -182,7 +187,9 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
 
         // Default: Internal server error (500)
-        LOG.error("Unhandled exception", exception);
+        LOG.errorf(exception,
+                "action=UNHANDLED_EXCEPTION message=%s",
+                exception.getMessage());
         String message = "An unexpected error occurred. Please try again later.";
 
         return Response
