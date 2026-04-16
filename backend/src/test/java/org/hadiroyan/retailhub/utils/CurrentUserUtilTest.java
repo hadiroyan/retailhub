@@ -32,6 +32,9 @@ class CurrentUserUtilTest {
 
     @Test
     @TestSecurity(user = USER_ID_STR, roles = "OWNER")
+    @JwtSecurity(claims = {
+            @Claim(key = "sub", value = USER_ID_STR)
+    })
     void getUserId_shouldReturnUUID_whenAuthenticated() {
         UUID result = currentUser.getUserId();
         assertEquals(USER_ID, result);
@@ -50,6 +53,9 @@ class CurrentUserUtilTest {
 
     @Test
     @TestSecurity(user = USER_ID_STR, roles = "OWNER")
+    @JwtSecurity(claims = {
+            @Claim(key = "sub", value = USER_ID_STR)
+    })
     void getUserIdOptional_shouldReturnValue_whenAuthenticated() {
         Optional<UUID> result = currentUser.getUserIdOptional();
 
