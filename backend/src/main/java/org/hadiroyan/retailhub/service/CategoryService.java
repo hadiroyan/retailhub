@@ -238,7 +238,7 @@ public class CategoryService {
     }
 
     private String generateSlug(String name, UUID storeId) {
-        LOG.infof("generate slug for %s in store id %d", name, String.valueOf(storeId));
+        LOG.infof("generate slug for %s in store id %s", name, String.valueOf(storeId));
         String baseSlug = SlugUtil.toSlug(name);
         String candidate = baseSlug;
         int counter = 2;
@@ -250,7 +250,7 @@ public class CategoryService {
     }
 
     private String generateSlugForUpdate(String name, UUID storeId, UUID excludeId) {
-        LOG.infof("generate slug for update %s in store id %d", name, String.valueOf(storeId));
+        LOG.infof("generate slug for update %s in store id %s", name, String.valueOf(storeId));
         String baseSlug = SlugUtil.toSlug(name);
         String candidate = baseSlug;
         int counter = 2;
