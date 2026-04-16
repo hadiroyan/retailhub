@@ -10,6 +10,7 @@ public class EmployeeMapper {
 
     public EmployeeResponse toResponse(User user) {
         EmployeeResponse response = new EmployeeResponse();
+        response.id = user.id;
         response.fullName = user.fullName;
         response.email = user.email;
         response.emailVerified = user.emailVerified;
