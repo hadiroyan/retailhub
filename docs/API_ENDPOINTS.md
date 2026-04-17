@@ -28,7 +28,7 @@ Base URL:
 | GET    | `/api/v1/stores/{slug}`      | Store detail (Public)                      |
 | PUT    | `/api/v1/stores/{id}`        | Update store (OWNER of store, SUPER_ADMIN) |
 | DELETE | `/api/v1/stores/{id}`        | Delete store (OWNER of store, SUPER_ADMIN) |
-| PATCH  | `/api/v1/stores/{id}/status` | Change status (OWNER, SUPER_ADMIN)           |
+| PATCH  | `/api/v1/stores/{id}/status` | Change status (OWNER, SUPER_ADMIN)         |
 
 ---
 
@@ -54,6 +54,17 @@ Base URL:
 | GET    | `/api/v1/stores/{storeId}/products/{sku}/detail` | Product detail by SKU (INTERNAL: OWNER, ADMIN, MANAGER)  |
 | PUT    | `/api/v1/stores/{storeId}/products/{id} `        | Update product (OWNER, ADMIN, MANAGER)                   |
 | DELETE | `/api/v1/stores/{storeId}/products/{id}`         | Delete product (OWNER, ADMIN, MANAGER)                   |
+
+---
+
+## Employee
+ 
+| Method | Endpoint                                            | Description                            |
+| ------ | --------------------------------------------------- | -------------------------------------- |
+| POST   | `/api/v1/stores/{storeId}/employees`                | Create employee (OWNER, ADMIN)         |
+| GET    | `/api/v1/stores/{storeId}/employees`                | List employees (OWNER, ADMIN, MANAGER) |
+| PUT    | `/api/v1/stores/{storeId}/employees/{targetUserId}` | Update employee role (OWNER, ADMIN)    |
+| DELETE | `/api/v1/stores/{storeId}/employees/{targetUserId}` | Remove employee (OWNER, ADMIN)         |
 
 ---
 
