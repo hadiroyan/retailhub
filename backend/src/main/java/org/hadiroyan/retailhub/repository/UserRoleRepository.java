@@ -95,6 +95,7 @@ public class UserRoleRepository implements PanacheRepository<UserRole> {
 
     public Optional<UserRole> findEmployeeRoleInStore(UUID userId, UUID storeId) {
         return find("""
+                SELECT ur
                 FROM UserRole ur
                 JOIN ur.role r
                 WHERE ur.user.id = ?1
