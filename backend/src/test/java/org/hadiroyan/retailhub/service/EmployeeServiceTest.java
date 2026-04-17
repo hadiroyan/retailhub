@@ -9,12 +9,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import org.hadiroyan.retailhub.dto.request.CreateEmployeeRequest;
+import org.hadiroyan.retailhub.dto.request.UpdateEmployeeRoleRequest;
 import org.hadiroyan.retailhub.dto.response.EmployeeResponse;
 import org.hadiroyan.retailhub.dto.response.PagedResponse;
 import org.hadiroyan.retailhub.exception.EmailAlreadyExistsException;
@@ -180,5 +182,107 @@ public class EmployeeServiceTest {
         PagedResponse<EmployeeResponse> result = employeeService.listEmployees(userId, storeId, 0, 10);
 
         assertEquals(1, result.totalElements);
+    }
+
+    @Test
+    void should_update_employee_role_successfully() {
+        UUID requesterId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        UUID targetUserId = UUID.randomUUID();
+
+        UpdateEmployeeRoleRequest request = new UpdateEmployeeRoleRequest();
+        request.role = "MANAGER";
+
+        Store store = new Store();
+        store.id = storeId;
+
+        Role role = new Role();
+        role.name = "MANAGER";
+
+        User user = new User();
+        user.id = targetUserId;
+        user.userRoles = new HashSet<>();
+
+        UserRole userRole = new UserRole();
+        userRole.user = user;
+        userRole.role = role;
+
+        user.userRoles.add(userRole);
+
+        // mock
+        when(storeRepository.findByIdOptional(storeId)).thenReturn(Optional.of(store));
+        when(userRoleRepository.userHasAnyRoleInStore(requesterId, Set.of("OWNER", "ADMIN"), storeId))
+                .thenReturn(true);
+        when(userRoleRepository.userHasRoleInStore(requesterId, "OWNER", storeId))
+                .thenReturn(true);
+        when(roleRepository.findByName("MANAGER")).thenReturn(Optional.of(role));
+        when(userRoleRepository.userHasRoleInStore(targetUserId, "OWNER", storeId))
+                .thenReturn(false);
+        when(userRoleRepository.findEmployeeRoleInStore(targetUserId, storeId))
+                .thenReturn(Optional.of(userRole));
+
+        // execute
+        EmployeeResponse response = employeeService.updateEmployeeRole(
+                requesterId, storeId, targetUserId, request);
+
+        // verify
+        assertNotNull(response);
+        assertEquals(targetUserId, response.id);
+        assertEquals("MANAGER", userRole.role.name);
+    }
+
+    @Test
+    void should_delete_employee_successfully() {
+        UUID requesterId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        UUID targetUserId = UUID.randomUUID();
+
+        Store store = new Store();
+        store.id = storeId;
+
+        UserRole userRole = new UserRole();
+
+        when(storeRepository.findByIdOptional(storeId)).thenReturn(Optional.of(store));
+        when(userRoleRepository.userHasAnyRoleInStore(requesterId, Set.of("OWNER", "ADMIN"), storeId))
+                .thenReturn(true);
+        when(userRoleRepository.findEmployeeRoleInStore(targetUserId, storeId))
+                .thenReturn(Optional.of(userRole));
+        when(userRoleRepository.userHasRoleInStore(targetUserId, "OWNER", storeId))
+                .thenReturn(false);
+
+        // execute
+        employeeService.deleteEmployee(requesterId, targetUserId, storeId);
+
+        // verify
+        verify(userRoleRepository).delete(userRole);
+    }
+
+    @Test
+    void should_throw_forbidden_when_admin_assigns_admin_role() {
+        UUID requesterId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        UUID targetUserId = UUID.randomUUID();
+
+        UpdateEmployeeRoleRequest request = new UpdateEmployeeRoleRequest();
+        request.role = "ADMIN";
+
+        Store store = new Store();
+        store.id = storeId;
+
+        when(storeRepository.findByIdOptional(storeId)).thenReturn(Optional.of(store));
+
+        // punya akses (ADMIN)
+        when(userRoleRepository.userHasAnyRoleInStore(requesterId, Set.of("OWNER", "ADMIN"), storeId))
+                .thenReturn(true);
+
+        // BUKAN OWNER
+        when(userRoleRepository.userHasRoleInStore(requesterId, "OWNER", storeId))
+                .thenReturn(false);
+
+        // execute + assert
+        assertThrows(ForbiddenException.class, () -> {
+            employeeService.updateEmployeeRole(
+                    requesterId, storeId, targetUserId, request);
+        });
     }
 }
