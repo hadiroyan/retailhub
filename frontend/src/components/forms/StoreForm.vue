@@ -35,7 +35,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Store Email</label>
-                <input v-model="form.email" type="email" placeholder="e.g. store@example.com"
+                <input v-model.trim="form.email" type="email" placeholder="e.g. store@example.com"
                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     :class="{ 'border-red-400': errors.email }" />
                 <p v-if="errors.email" class="text-xs text-red-500 mt-1">{{ errors.email }}</p>
@@ -119,7 +119,7 @@ const validate = () => {
     if (!form.value.name.trim()) {
         errors.value.name = 'Store name is required';
     }
-    if (form.value.email && isValidEmail(form.value.email)) {
+    if (form.value.email && !isValidEmail(form.value.email)) {
         errors.value.email = 'Invalid email format';
     }
     return Object.keys(errors.value).length === 0;
