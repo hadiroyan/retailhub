@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { ROUTE_PATHS, ROUTE_NAMES } from "../utils/constants";
+import { useAuthStore } from "../stores/auth";
+
+// Existing views
 import Home from "../views/Home.vue";
 import Login from "../views/auth/Login.vue";
 import RegisterChoice from "../views/auth/RegisterChoice.vue";
@@ -11,22 +14,34 @@ import SuperAdminDashboard from "../views/dashboard/SuperAdminDashboard.vue";
 import Profile from "../views/profile/Profile.vue";
 import NotFound from "../views/NotFound.vue";
 import Forbidden from "../views/Forbidden.vue";
-import { useAuthStore } from "../stores/auth";
+
+// Store views
+import CreateStorePage from "../views/stores/CreateStorePage.vue";
+import EditStorePage from "../views/stores/EditStorePage.vue";
+import EmployeeListPage from "../views/stores/EmployeeListPage.vue";
+import CategoryListPage from "../views/stores/CategoryListPage.vue";
+import ProductListPage from "../views/stores/ProductListPage.vue";
+import StoreSettingPage from "../views/stores/StoreSettingPage.vue";
+import StoreDashboardPage from "../views/stores/StoreDashboardPage.vue";
 
 const routes = [
+  // =========================================================================
   // Public Routes
+  // =========================================================================
   {
     path: ROUTE_PATHS.HOME,
     name: ROUTE_NAMES.HOME,
     component: Home,
   },
 
-  // Authentication Routes
+  // =========================================================================
+  // Auth Routes
+  // =========================================================================
   {
     path: ROUTE_PATHS.LOGIN,
     name: ROUTE_NAMES.LOGIN,
     component: Login,
-    meta: { guest: true }, // Only accessible when NOT authenticated
+    meta: { guest: true },
   },
   {
     path: "/register",
@@ -47,20 +62,20 @@ const routes = [
     meta: { guest: true },
   },
 
+  // =========================================================================
   // Dashboard Routes
+  // =========================================================================
   {
     path: ROUTE_PATHS.DASHBOARD,
     name: ROUTE_NAMES.DASHBOARD,
     redirect: () => {
       const authStore = useAuthStore();
       const role = authStore.userRole;
-
-      // Redirect based on user role
       if (role === "OWNER") return { name: ROUTE_NAMES.DASHBOARD_OWNER };
       if (role === "CUSTOMER") return { name: ROUTE_NAMES.DASHBOARD_CUSTOMER };
       if (role === "SUPER_ADMIN") return { name: ROUTE_NAMES.DASHBOARD_ADMIN };
-
-      // If no role or not authenticated, go to login
+      if (role === "ADMIN" || role === "MANAGER" || role === "STAFF")
+        return { name: ROUTE_NAMES.STORE_DASHBOARD };
       return { name: ROUTE_NAMES.LOGIN };
     },
     meta: { requiresAuth: true },
@@ -72,7 +87,7 @@ const routes = [
     meta: {
       requiresAuth: true,
       roles: ["OWNER"],
-      title: "Owner Dashboard",
+      title: "My Stores",
     },
   },
   {
@@ -96,7 +111,97 @@ const routes = [
     },
   },
 
-  // Profile Route
+  // =========================================================================
+  // Owner Store Management
+  // =========================================================================
+  {
+    path: ROUTE_PATHS.OWNER_STORES,
+    name: ROUTE_NAMES.OWNER_STORES,
+    component: OwnerDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER"],
+      title: "My Stores",
+    },
+  },
+  {
+    path: ROUTE_PATHS.OWNER_STORE_CREATE,
+    name: ROUTE_NAMES.OWNER_STORE_CREATE,
+    component: CreateStorePage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER"],
+      title: "Create Store",
+    },
+  },
+  {
+    path: ROUTE_PATHS.OWNER_STORE_EDIT,
+    name: ROUTE_NAMES.OWNER_STORE_EDIT,
+    component: EditStorePage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER"],
+      title: "Edit Store",
+    },
+  },
+
+  // =========================================================================
+  // Store Context Routes (placeholder — to be filled in on the following pages)
+  // =========================================================================
+  {
+    path: ROUTE_PATHS.STORE_DASHBOARD,
+    name: ROUTE_NAMES.STORE_DASHBOARD,
+    component: StoreDashboardPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER", "ADMIN", "MANAGER", "STAFF"],
+      title: "Store Dashboard",
+    },
+  },
+  {
+    path: ROUTE_PATHS.STORE_EMPLOYEES,
+    name: ROUTE_NAMES.STORE_EMPLOYEES,
+    component: EmployeeListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER", "ADMIN", "MANAGER"],
+      title: "Employees",
+    },
+  },
+  {
+    path: ROUTE_PATHS.STORE_CATEGORIES,
+    name: ROUTE_NAMES.STORE_CATEGORIES,
+    component: CategoryListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER", "ADMIN", "MANAGER", "STAFF"],
+      title: "Categories",
+    },
+  },
+  {
+    path: ROUTE_PATHS.STORE_PRODUCTS,
+    name: ROUTE_NAMES.STORE_PRODUCTS,
+    component: ProductListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER", "ADMIN", "MANAGER", "STAFF"],
+      title: "Products",
+    },
+  },
+  {
+    path: ROUTE_PATHS.STORE_SETTINGS,
+    name: ROUTE_NAMES.STORE_SETTINGS,
+    component: StoreSettingPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER"],
+      title: "Store Settings",
+    },
+  },
+
+  // =========================================================================
+  // Profile
+  // =========================================================================
   {
     path: ROUTE_PATHS.PROFILE,
     name: ROUTE_NAMES.PROFILE,
@@ -107,25 +212,23 @@ const routes = [
     },
   },
 
+  // =========================================================================
   // Error Pages
+  // =========================================================================
   {
     path: ROUTE_PATHS.FORBIDDEN,
     name: ROUTE_NAMES.FORBIDDEN,
     component: Forbidden,
-    meta: {
-      title: "403 - Forbidden",
-    },
+    meta: { title: "403 - Forbidden" },
   },
   {
     path: ROUTE_PATHS.NOT_FOUND,
     name: ROUTE_NAMES.NOT_FOUND,
     component: NotFound,
-    meta: {
-      title: "404 - Not Found",
-    },
+    meta: { title: "404 - Not Found" },
   },
 
-  // Catch-all route (must be last)
+  // Catch-all (must be last)
   {
     path: "/:pathMatch(.*)*",
     redirect: { name: ROUTE_NAMES.NOT_FOUND },
