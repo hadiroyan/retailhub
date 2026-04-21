@@ -43,7 +43,6 @@ export const ROLES = {
   CUSTOMER: "CUSTOMER",
   MANAGER: "MANAGER",
   STAFF: "STAFF",
-  CUSTOMER: "CUSTOMER",
 };
 
 // Store Status
