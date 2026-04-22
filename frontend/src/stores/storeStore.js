@@ -336,6 +336,20 @@ export const useStoreStore = defineStore("store", () => {
     }
   }
 
+  async function fetchProductDetail(storeId, sku) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await storeService.getProductDetail(storeId, sku);
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || "Failed to load product detail";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   // =========================================================================
   // Helpers
   // =========================================================================
@@ -386,9 +400,10 @@ export const useStoreStore = defineStore("store", () => {
 
     // Product actions
     fetchProducts,
+    fetchProductDetail,
     createProduct,
     updateProduct,
-    deleteProduct,
+    deleteProduct, 
 
     // Helpers
     setActiveStore,

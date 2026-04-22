@@ -321,21 +321,29 @@ const openCreate = () => {
     showFormModal.value = true;
 };
 
-const openEdit = (product) => {
+const openEdit = async (product) => {
     isEdit.value = true;
     selectedProduct.value = product;
-    form.value = {
-        name: product.name,
-        description: product.description || '',
-        price: product.price,
-        costPrice: product.costPrice || null,
-        stockQuantity: product.stockQuantity,
-        minStockLevel: product.minStockLevel || 10,
-        categoryId: product.category?.id || '',
-        status: product.status,
-    };
     formError.value = null;
+    formLoading.value = true;
     showFormModal.value = true;
+    try {
+        const detail = await storeStore.fetchProductDetail(storeId.value, product.sku);
+        form.value = {
+            name: detail.name,
+            description: detail.description || '',
+            price: detail.price,
+            costPrice: detail.costPrice || null,
+            stockQuantity: detail.stockQuantity,
+            minStockLevel: detail.minStockLevel || 10,
+            categoryId: detail.category?.id || '',
+            status: detail.status,
+        };
+    } catch {
+        formError.value = 'Failed to load product details';
+    } finally {
+        formLoading.value = false;
+    }
 };
 
 const closeFormModal = () => {
