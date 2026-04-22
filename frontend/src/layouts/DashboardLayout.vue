@@ -7,23 +7,16 @@
 
         <!-- Left: toggle + brand -->
         <div class="flex items-center gap-3">
-          <button
-            @click="toggleSidebar"
-            class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors"
-          >
+          <button @click="toggleSidebar"
+            class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
             <i :class="['fas', sidebarOpen ? 'fa-times' : 'fa-bars']"></i>
           </button>
-          <span
-            class="text-xl font-bold text-blue-600 cursor-pointer"
-            @click="router.push({ name: ROUTE_NAMES.DASHBOARD })"
-          >
+          <span class="text-xl font-bold text-blue-600 cursor-pointer"
+            @click="router.push({ name: ROUTE_NAMES.DASHBOARD })">
             RetailHub
           </span>
           <!-- Store context badge -->
-          <span
-            v-if="activeStore"
-            class="hidden sm:flex items-center gap-1 text-sm text-gray-500"
-          >
+          <span v-if="activeStore" class="hidden sm:flex items-center gap-1 text-sm text-gray-500">
             <i class="fas fa-chevron-right text-xs text-gray-300"></i>
             <span class="font-medium text-gray-700">{{ activeStore.name }}</span>
           </span>
@@ -33,15 +26,12 @@
         <div class="flex items-center gap-3">
           <div class="hidden sm:flex flex-col items-end">
             <span class="text-sm font-medium text-gray-800">{{ userName }}</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
-              :class="roleBadgeClass">
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium" :class="roleBadgeClass">
               {{ userRole }}
             </span>
           </div>
-          <button
-            @click="handleLogout"
-            class="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-          >
+          <button @click="handleLogout"
+            class="flex items-center gap-1 px-3 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer">
             <i class="fas fa-sign-out-alt"></i>
             <span class="hidden sm:inline">Logout</span>
           </button>
@@ -54,20 +44,16 @@
     <div class="flex flex-1 overflow-hidden">
 
       <!-- Sidebar -->
-      <aside
-        :class="[
-          'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden shrink-0',
-          sidebarOpen ? 'w-56' : 'w-16'
-        ]"
-      >
+      <aside :class="[
+        'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden shrink-0',
+        sidebarOpen ? 'w-56' : 'w-16'
+      ]">
         <nav class="flex-1 py-4 flex flex-col gap-1 px-2 overflow-y-auto">
 
           <!-- Back to My Stores — only when inside a store context (OWNER) -->
           <template v-if="activeStore && isOwner">
-            <button
-              @click="router.push({ name: ROUTE_NAMES.OWNER_STORES })"
-              class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition-colors w-full"
-            >
+            <button @click="goBackToMyStores"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors w-full cursor-pointer">
               <i class="fas fa-arrow-left w-4 text-center shrink-0"></i>
               <span v-if="sidebarOpen" class="truncate whitespace-nowrap">My Stores</span>
             </button>
@@ -75,18 +61,13 @@
           </template>
 
           <!-- Nav items -->
-          <button
-            v-for="item in navItems"
-            :key="item.name"
-            @click="navigate(item)"
-            :title="!sidebarOpen ? item.name : ''"
-            :class="[
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors w-full',
+          <button v-for="item in navItems" :key="item.name" @click="navigate(item)"
+            :title="!sidebarOpen ? item.name : ''" :class="[
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors w-full cursor-pointer',
               isActive(item)
                 ? 'bg-blue-50 text-blue-600 font-medium border-r-2 border-blue-600'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
-            ]"
-          >
+            ]">
             <i :class="`fas ${item.icon} w-4 text-center shrink-0`"></i>
             <span v-if="sidebarOpen" class="truncate whitespace-nowrap">{{ item.name }}</span>
           </button>
@@ -219,6 +200,12 @@ const handleLogout = async () => {
   await authStore.logout();
   router.push({ name: ROUTE_NAMES.LOGIN });
 };
+
+const goBackToMyStores = () => {
+  storeStore.setActiveStore(null);
+  router.push({ name: ROUTE_NAMES.OWNER_STORES });
+};
+
 </script>
 
 <style scoped></style>
