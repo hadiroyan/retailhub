@@ -110,18 +110,6 @@ const isManager = computed(() => userRole.value === ROLES.MANAGER);
 const isStaff = computed(() => userRole.value === ROLES.STAFF);
 const isSuperAdmin = computed(() => userRole.value === ROLES.SUPER_ADMIN);
 
-// Role badge color
-const roleBadgeClass = computed(() => {
-  const map = {
-    OWNER: 'bg-blue-100 text-blue-700',
-    ADMIN: 'bg-sky-100 text-sky-700',
-    MANAGER: 'bg-green-100 text-green-700',
-    STAFF: 'bg-emerald-100 text-emerald-700',
-    SUPER_ADMIN: 'bg-indigo-100 text-indigo-700',
-  };
-  return map[userRole.value] || 'bg-gray-100 text-gray-700';
-});
-
 // Nav items per role
 const navItems = computed(() => {
   const storeId = activeStore.value?.id;
