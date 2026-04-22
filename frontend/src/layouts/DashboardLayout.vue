@@ -25,10 +25,7 @@
         <!-- Right: user info + logout -->
         <div class="flex items-center gap-3">
           <div class="hidden sm:flex flex-col items-end">
-            <span class="text-sm font-medium text-gray-800">{{ userName }}</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-medium" :class="roleBadgeClass">
-              {{ userRole }}
-            </span>
+            <span class="text-md font-medium text-gray-800">{{ userName }}</span>
           </div>
           <button @click="handleLogout"
             class="flex items-center gap-1 px-3 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer">
