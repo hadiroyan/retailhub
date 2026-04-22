@@ -50,6 +50,7 @@ Base URL:
 | ------ | ------------------------------------------------ | -------------------------------------------------------- |
 | POST   | `/api/v1/stores/{storeId}/products`              | Create product (OWNER, ADMIN, MANAGER)                   |
 | GET    | `/api/v1/stores/{storeId}/products`              | List product (Public, filter: name/category/sortByPrice) |
+| GET    | `/api/v1/stores/{storeId}/products/internal`     | List products with detail (OWNER, ADMIN, MANAGER, STAFF) |
 | GET    | `/api/v1/stores/{storeId}/products/{sku}  `      | Product detail by SKU (Public)                           |
 | GET    | `/api/v1/stores/{storeId}/products/{sku}/detail` | Product detail by SKU (INTERNAL: OWNER, ADMIN, MANAGER)  |
 | PUT    | `/api/v1/stores/{storeId}/products/{id} `        | Update product (OWNER, ADMIN, MANAGER)                   |
@@ -58,7 +59,7 @@ Base URL:
 ---
 
 ## Employee
- 
+
 | Method | Endpoint                                            | Description                            |
 | ------ | --------------------------------------------------- | -------------------------------------- |
 | POST   | `/api/v1/stores/{storeId}/employees`                | Create employee (OWNER, ADMIN)         |

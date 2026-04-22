@@ -77,6 +77,26 @@ public class ProductResource {
     }
 
     @GET
+    @Path("/internal")
+    @RolesAllowed({ "OWNER", "ADMIN", "MANAGER", "STAFF" })
+    public Response listProductsInternal(
+            @PathParam("storeId") UUID storeId,
+            @QueryParam("name") String name,
+            @QueryParam("categoryId") UUID categoryId,
+            @QueryParam("sortByPrice") String sortByPrice,
+            @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("size") @DefaultValue("10") int size) {
+
+        UUID userId = currentUser.getUserId();
+        LOG.debugf("action=LIST_PRODUCTS_INTERNAL_REQUEST storeId=%s name=%s categoryId=%s page=%d size=%d",
+                storeId, name, categoryId, page, size);
+
+        PagedResponse<ProductDetailResponse> result = productService.listProductsInternal(
+                storeId, userId, name, categoryId, sortByPrice, page, size);
+        return Response.ok(ApiResponse.success("Products retrieved successfully", result)).build();
+    }
+
+    @GET
     @Path("/{sku}")
     @PermitAll
     public Response getProductBySku(

@@ -113,6 +113,30 @@ public class ProductService {
         return new PagedResponse<>(content, page, size, total);
     }
 
+    // Read (Internal)
+    public PagedResponse<ProductDetailResponse> listProductsInternal(
+            UUID storeId, UUID userId, String name, UUID categoryId,
+            String sortByPrice, int page, int size) {
+
+        LOG.debugf("action=LIST_PRODUCTS_INTERNAL_START storeId=%s name=%s categoryId=%s page=%d size=%d",
+                storeId, name, categoryId, page, size);
+
+        findStoreOrThrow(storeId);
+        checkWritePermission(userId, storeId);
+
+        List<Product> products = productRepository.findByStore(
+                storeId, name, categoryId, sortByPrice, page, size);
+        long total = productRepository.countByStore(storeId, name, categoryId);
+
+        List<ProductDetailResponse> content = products.stream()
+                .map(productMapper::toDetailResponse)
+                .toList();
+
+        LOG.infof("action=LIST_PRODUCTS_INTERNAL_SUCCESS storeId=%s total=%d page=%d size=%d",
+                storeId, total, page, size);
+        return new PagedResponse<>(content, page, size, total);
+    }
+
     public ProductResponse getProductBySku(UUID storeId, String sku) {
 
         LOG.debugf("action=GET_PRODUCT_BY_SKU_START storeId=%s sku=%s", storeId, sku);
