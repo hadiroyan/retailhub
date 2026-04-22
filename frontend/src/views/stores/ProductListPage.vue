@@ -65,6 +65,7 @@
                         <th class="text-left px-4 py-3 font-medium text-gray-600">SKU</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-600">Category</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-600">Price</th>
+                        <th class="text-left px-4 py-3 font-medium text-gray-600">Cost Price</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-600">Stock</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-600">Status</th>
                         <th v-if="canWrite" class="text-left px-4 py-3 font-medium text-gray-600">Actions</th>
@@ -80,6 +81,8 @@
                         <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ product.sku }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ product.category?.name || '-' }}</td>
                         <td class="px-4 py-3 font-medium text-gray-900">{{ formatCurrency(product.price) }}</td>
+                        <td class="px-4 py-3 text-gray-500">
+                            {{ product.costPrice ? formatCurrency(product.costPrice) : '-' }}</td>
                         <td class="px-4 py-3">
                             <span :class="product.stockQuantity <= 0 ? 'text-red-600 font-medium' : 'text-gray-700'">
                                 {{ product.stockQuantity }}
@@ -286,7 +289,7 @@ const statusBadgeClass = (status) => {
 
 const fetchWithFilters = () => {
     currentPage.value = 0;
-    storeStore.fetchProducts(storeId.value, {
+    storeStore.fetchInternalProducts(storeId.value, {
         name: searchName.value || undefined,
         categoryId: filterCategory.value || undefined,
         sortByPrice: sortByPrice.value || undefined,
@@ -321,29 +324,21 @@ const openCreate = () => {
     showFormModal.value = true;
 };
 
-const openEdit = async (product) => {
+const openEdit = (product) => {
     isEdit.value = true;
     selectedProduct.value = product;
+    form.value = {
+        name: product.name,
+        description: product.description || '',
+        price: product.price,
+        costPrice: product.costPrice || null,
+        stockQuantity: product.stockQuantity,
+        minStockLevel: product.minStockLevel || 0,
+        categoryId: product.category?.id || '',
+        status: product.status,
+    };
     formError.value = null;
-    formLoading.value = true;
     showFormModal.value = true;
-    try {
-        const detail = await storeStore.fetchProductDetail(storeId.value, product.sku);
-        form.value = {
-            name: detail.name,
-            description: detail.description || '',
-            price: detail.price,
-            costPrice: detail.costPrice || null,
-            stockQuantity: detail.stockQuantity,
-            minStockLevel: detail.minStockLevel || 10,
-            categoryId: detail.category?.id || '',
-            status: detail.status,
-        };
-    } catch {
-        formError.value = 'Failed to load product details';
-    } finally {
-        formLoading.value = false;
-    }
 };
 
 const closeFormModal = () => {
@@ -403,7 +398,7 @@ const handleDelete = async () => {
 
 const changePage = (page) => {
     currentPage.value = page;
-    storeStore.fetchProducts(storeId.value, {
+    storeStore.fetchInternalProducts(storeId.value, {
         name: searchName.value || undefined,
         categoryId: filterCategory.value || undefined,
         sortByPrice: sortByPrice.value || undefined,

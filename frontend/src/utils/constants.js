@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
  
   PRODUCTS: {
     BASE: (storeId) => `/api/v1/stores/${storeId}/products`,
+    INTERNAL: (storeId) => `/api/v1/stores/${storeId}/products/internal`,
     BY_ID: (storeId, id) => `/api/v1/stores/${storeId}/products/${id}`,
     BY_SKU: (storeId, sku) => `/api/v1/stores/${storeId}/products/${sku}`,
     DETAIL: (storeId, sku) => `/api/v1/stores/${storeId}/products/${sku}/detail`,

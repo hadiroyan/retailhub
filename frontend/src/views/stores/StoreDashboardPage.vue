@@ -79,6 +79,7 @@ const {
     totalProducts,
     totalCategories,
     totalEmployees,
+    lowStockProducts,
 } = storeToRefs(storeStore);
 
 const storeId = computed(() => route.params.storeId);
@@ -113,7 +114,7 @@ const stats = computed(() => [
     },
     {
         label: 'Low Stock',
-        value: 0, // placeholder
+        value: lowStockProducts.value, 
         icon: 'fa-exclamation-triangle',
         iconBg: 'bg-red-50',
         iconColor: 'text-red-500',

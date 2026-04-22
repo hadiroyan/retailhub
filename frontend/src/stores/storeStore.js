@@ -26,6 +26,7 @@ export const useStoreStore = defineStore("store", () => {
   // Product
   const products = ref([]);
   const totalProducts = ref(0);
+  const lowStockProducts = ref(0);
 
   // Loading & error state
   const loading = ref(false);
@@ -350,6 +351,28 @@ export const useStoreStore = defineStore("store", () => {
     }
   }
 
+  async function fetchInternalProducts(storeId, params = {}) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await storeService.getInternalProducts(storeId, params);
+      products.value = response.data.content;
+      totalProducts.value = response.data.totalElements;
+
+      lowStockProducts.value = 0;
+      for (let index = 0; index < products.value.length; index++) {
+        const element = products.value[index];
+        if (element.stockQuantity < element.minStockLevel) {
+          lowStockProducts.value++;
+        }
+      }
+    } catch (err) {
+      error.value = err.response?.data?.message || "Failed to load products";
+    } finally {
+      loading.value = false;
+    }
+  }
+
   // =========================================================================
   // Helpers
   // =========================================================================
@@ -375,6 +398,7 @@ export const useStoreStore = defineStore("store", () => {
     totalCategories,
     products,
     totalProducts,
+    lowStockProducts,
     loading,
     error,
 
@@ -401,6 +425,7 @@ export const useStoreStore = defineStore("store", () => {
     // Product actions
     fetchProducts,
     fetchProductDetail,
+    fetchInternalProducts,
     createProduct,
     updateProduct,
     deleteProduct, 

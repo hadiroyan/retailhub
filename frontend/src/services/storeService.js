@@ -124,6 +124,14 @@ export const storeService = {
     return response.data;
   },
 
+  async getInternalProducts(storeId, params = {}) {
+    const response = await api.get(
+      API_ENDPOINTS.PRODUCTS.INTERNAL(storeId),
+      { params }
+    );
+    return response.data;
+  },
+
   async getProductBySku(storeId, sku) {
     const response = await api.get(
       API_ENDPOINTS.PRODUCTS.BY_SKU(storeId, sku)
