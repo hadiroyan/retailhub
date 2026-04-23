@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import authService from "../services/authService";
+import { parseJwt } from "../utils/helper";
 
 export const useAuthStore = defineStore("auth", () => {
   // State
@@ -16,6 +17,8 @@ export const useAuthStore = defineStore("auth", () => {
   const userRole = computed(() => user.value?.roles[0] || null);
   const userName = computed(() => user.value?.fullName || "");
   const userEmail = computed(() => user.value?.email || "");
+  const assignedStore = computed(() => user.value?.assignedStore || null);
+  const ownerStores = computed(() => user.value?.stores || null);
 
   async function checkAuth() {
     if (authCheckPromise.value) {
@@ -171,6 +174,8 @@ export const useAuthStore = defineStore("auth", () => {
     userRole,
     userName,
     userEmail,
+    assignedStore,
+    ownerStores,
 
     // Actions
     checkAuth,

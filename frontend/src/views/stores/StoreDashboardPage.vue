@@ -114,7 +114,7 @@ const stats = computed(() => [
     },
     {
         label: 'Low Stock',
-        value: lowStockProducts.value, 
+        value: lowStockProducts.value,
         icon: 'fa-exclamation-triangle',
         iconBg: 'bg-red-50',
         iconColor: 'text-red-500',
@@ -127,7 +127,8 @@ onMounted(async () => {
     if (!activeStore.value) return;
     const id = storeId.value;
     await Promise.all([
-        storeStore.fetchProducts(id),
+        storeStore.fetchStoreBySlug(activeStore.value?.slug),
+        storeStore.fetchInternalProducts(id),
         storeStore.fetchCategories(id),
         storeStore.fetchEmployees(id),
     ]);

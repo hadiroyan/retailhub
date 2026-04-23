@@ -74,9 +74,16 @@ const routes = [
       if (role === "OWNER") return { name: ROUTE_NAMES.DASHBOARD_OWNER };
       if (role === "CUSTOMER") return { name: ROUTE_NAMES.DASHBOARD_CUSTOMER };
       if (role === "SUPER_ADMIN") return { name: ROUTE_NAMES.DASHBOARD_ADMIN };
-      if (role === "ADMIN" || role === "MANAGER" || role === "STAFF")
-        return { name: ROUTE_NAMES.STORE_DASHBOARD };
-      return { name: ROUTE_NAMES.LOGIN };
+      if (role === "ADMIN" || role === "MANAGER" || role === "STAFF") {
+        const assignedStoreId = authStore.assignedStore?.id;
+        if (assignedStoreId) {
+          return {
+            name: ROUTE_NAMES.EMPLOYEE_STORE_DASHBOARD,
+            params: { storeId: assignedStoreId }
+          };
+        }
+        return { name: ROUTE_NAMES.LOGIN };
+      }
     },
     meta: { requiresAuth: true },
   },
@@ -196,6 +203,50 @@ const routes = [
       requiresAuth: true,
       roles: ["OWNER"],
       title: "Store Settings",
+    },
+  },
+
+  // =========================================================================
+  // Employee
+  // =========================================================================
+  {
+    path: ROUTE_PATHS.EMPLOYEE_STORE_DASHBOARD,
+    name: ROUTE_NAMES.EMPLOYEE_STORE_DASHBOARD,
+    component: StoreDashboardPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+      title: "Store Dashboard",
+    },
+  },
+  {
+    path: ROUTE_PATHS.EMPLOYEE_STORE_EMPLOYEES,
+    name: ROUTE_NAMES.EMPLOYEE_STORE_EMPLOYEES,
+    component: () => import("../views/stores/EmployeeListPage.vue"),
+    meta: {
+      requiresAuth: true,
+      roles: ["ADMIN", "MANAGER"],
+      title: "Employees",
+    },
+  },
+  {
+    path: ROUTE_PATHS.EMPLOYEE_STORE_CATEGORIES,
+    name: ROUTE_NAMES.EMPLOYEE_STORE_CATEGORIES,
+    component: CategoryListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+      title: "Categories",
+    },
+  },
+  {
+    path: ROUTE_PATHS.EMPLOYEE_STORE_PRODUCTS,
+    name: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS,
+    component: ProductListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+      title: "Products",
     },
   },
 

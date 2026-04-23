@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../stores/auth';
@@ -136,10 +136,10 @@ const navItems = computed(() => {
   // ADMIN
   if (isAdmin.value) {
     return [
-      { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.STORE_DASHBOARD },
-      { name: 'Employees', icon: 'fa-users', routeName: ROUTE_NAMES.STORE_EMPLOYEES },
-      { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.STORE_CATEGORIES },
-      { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.STORE_PRODUCTS },
+      { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.EMPLOYEE_STORE_DASHBOARD, params: { storeId } },
+      { name: 'Employees', icon: 'fa-users', routeName: ROUTE_NAMES.EMPLOYEE_STORE_EMPLOYEES, params: { storeId } },
+      { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.EMPLOYEE_STORE_CATEGORIES, params: { storeId } },
+      { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
@@ -147,10 +147,10 @@ const navItems = computed(() => {
   // MANAGER
   if (isManager.value) {
     return [
-      { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.STORE_DASHBOARD },
-      { name: 'Employees', icon: 'fa-users', routeName: ROUTE_NAMES.STORE_EMPLOYEES },
-      { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.STORE_CATEGORIES },
-      { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.STORE_PRODUCTS },
+      { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.EMPLOYEE_STORE_DASHBOARD, params: { storeId } },
+      { name: 'Employees', icon: 'fa-users', routeName: ROUTE_NAMES.EMPLOYEE_STORE_EMPLOYEES, params: { storeId } },
+      { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.EMPLOYEE_STORE_CATEGORIES, params: { storeId } },
+      { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
@@ -158,8 +158,8 @@ const navItems = computed(() => {
   // STAFF
   if (isStaff.value) {
     return [
-      { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.STORE_DASHBOARD },
-      { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.STORE_PRODUCTS },
+      { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.EMPLOYEE_STORE_DASHBOARD, params: { storeId } },
+      { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
@@ -190,6 +190,13 @@ const goBackToMyStores = () => {
   storeStore.setActiveStore(null);
   router.push({ name: ROUTE_NAMES.OWNER_STORES });
 };
+
+onMounted(() => {
+  // ADMIN/MANAGER/STAFF — set activeStore dari assignedStore JWT
+  if (!isOwner.value && !isSuperAdmin.value && authStore.assignedStore) {
+    storeStore.setActiveStore(authStore.assignedStore);
+  }
+});
 
 </script>
 
