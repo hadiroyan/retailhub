@@ -41,6 +41,10 @@ public class StoreRepository implements PanacheRepositoryBase<Store, UUID> {
                 .list();
     }
 
+    public List<Store> findAllByOwnerId(UUID ownerId) {
+        return find("owner.id", ownerId).list();
+    } 
+
     // Active stores (for CUSTOMER)
     public List<Store> findAllActive(int page, int size) {
         return find("status", Sort.by("createdAt").descending(), "ACTIVE")

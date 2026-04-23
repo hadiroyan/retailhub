@@ -1,5 +1,10 @@
 package org.hadiroyan.retailhub.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterOwnerRequest;
@@ -12,9 +17,11 @@ import org.hadiroyan.retailhub.exception.NotFoundException;
 import org.hadiroyan.retailhub.exception.RoleNotFoundException;
 import org.hadiroyan.retailhub.exception.UnauthorizedException;
 import org.hadiroyan.retailhub.model.Role;
+import org.hadiroyan.retailhub.model.Store;
 import org.hadiroyan.retailhub.model.User;
 import org.hadiroyan.retailhub.model.UserRole;
 import org.hadiroyan.retailhub.repository.RoleRepository;
+import org.hadiroyan.retailhub.repository.StoreRepository;
 import org.hadiroyan.retailhub.repository.UserRepository;
 import org.hadiroyan.retailhub.repository.UserRoleRepository;
 import org.hadiroyan.retailhub.utils.ValidationUtils;
@@ -42,6 +49,9 @@ public class AuthService {
     @Inject
     JwtTokenService jwtTokenService;
 
+    @Inject
+    StoreRepository storeRepository;
+
     private static Logger LOG = Logger.getLogger(AuthService.class);
 
     public ApiResponse<AuthResponse> login(LoginRequest request) {
@@ -66,11 +76,11 @@ public class AuthService {
             throw new UnauthorizedException("Invalid email or password");
         }
 
-        String token = jwtTokenService.generateToken(user);
+        String token = jwtTokenService.generateToken(user, fetchStoreDataForUser(user));
 
         AuthResponse authResponse = new AuthResponse();
         authResponse.token = token;
-        authResponse.user = UserResponse.fromUser(user);
+        authResponse.user = buildUserResponse(user);
 
         LOG.infof("action=LOGIN_SUCCESS userId=%s email=%s",
                 user.id, email);
@@ -161,51 +171,75 @@ public class AuthService {
         LOG.infof("action=GET_CURRENT_USER_SUCCESS userId=%s email=%s",
                 user.id, email);
 
-        return UserResponse.fromUser(user);
+        return buildUserResponse(user);
     }
 
     public String generateTokenForUser(User user) {
         return jwtTokenService.generateToken(user);
     }
 
-    // ============================================
-    // Future: Fetch Store Data Helper (TODO: Implement when Store entity is ready)
-    // ============================================
+    // Fetch store data for user to include in JWT token.
+    private Object fetchStoreDataForUser(User user) {
+        Set<String> roles = getRoles(user);
 
-    /**
-     * Fetch store data for user to include in JWT token.
-     * 
-     * private Object fetchStoreDataForUser(User user) {
-     * Set<String> roles = user.userRoles.stream()
-     * .map(ur -> ur.role.name)
-     * .collect(Collectors.toSet());
-     * 
-     * if (roles.contains("OWNER")) {
-     * List<Store> stores = storeRepository.findByOwnerId(user.id);
-     * return stores.stream()
-     * .map(s -> Map.of(
-     * "id", s.id.toString(),
-     * "name", s.name,
-     * "slug", s.slug))
-     * .toList();
-     * }
-     * 
-     * if (roles.contains("ADMIN") || roles.contains("MANAGER") ||
-     * roles.contains("STAFF")) {
-     * Optional<UserRole> userRole = user.userRoles.stream()
-     * .filter(ur -> ur.storeId != null)
-     * .findFirst();
-     * 
-     * if (userRole.isPresent()) {
-     * Store store = storeRepository.findById(userRole.get().storeId).orElseThrow();
-     * return Map.of(
-     * "id", store.id.toString(),
-     * "name", store.name,
-     * "slug", store.slug);
-     * }
-     * }
-     * 
-     * return null;
-     * }
-     */
+        if (roles.contains("OWNER")) {
+            List<Store> stores = storeRepository.findAllByOwnerId(user.id);
+            return stores.stream()
+                    .map(s -> Map.of(
+                            "id", s.id.toString(),
+                            "name", s.name,
+                            "slug", s.slug))
+                    .toList();
+        }
+
+        if (roles.contains("ADMIN") || roles.contains("MANAGER") || roles.contains("STAFF")) {
+            Store store = getAssignedStore(user);
+            return Map.of(
+                    "id", store.id.toString(),
+                    "name", store.name,
+                    "slug", store.slug);
+        }
+
+        return null;
+    }
+
+    private UserResponse buildUserResponse(User user) {
+        UserResponse response = UserResponse.fromUser(user);
+
+        Set<String> roles = getRoles(user);
+
+        if (roles.contains("OWNER")) {
+            List<Store> ownerStores = storeRepository.findAllByOwnerId(user.id);
+            response.stores = ownerStores.stream()
+                    .map(s -> new UserResponse.StoreInfo(s.id.toString(), s.name, s.slug))
+                    .toList();
+        } else if (roles.contains("ADMIN") || roles.contains("MANAGER") || roles.contains("STAFF")) {
+            Store store = getAssignedStore(user);
+            if (store != null) {
+                response.assignedStore = new UserResponse.StoreInfo(
+                        store.id.toString(),
+                        store.name,
+                        store.slug);
+            }
+        }
+
+        return response;
+    }
+
+    private Set<String> getRoles(User user) {
+        return user.userRoles.stream()
+                .map(ur -> ur.role.name)
+                .collect(Collectors.toSet());
+    }
+
+    private Store getAssignedStore(User user) {
+        return user.userRoles.stream()
+                .filter(ur -> ur.storeId != null)
+                .findFirst()
+                .map(ur -> storeRepository.findById(ur.storeId))
+                .orElseThrow(() -> {
+                    LOG.warnf("action=USER_ROLE_NOT_FOUND email=%s", user.email);
+                    return new NotFoundException("User not found");
+                });
+    }
 }

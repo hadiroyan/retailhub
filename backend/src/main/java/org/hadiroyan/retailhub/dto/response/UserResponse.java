@@ -1,6 +1,7 @@
 package org.hadiroyan.retailhub.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,6 +16,9 @@ public class UserResponse {
     public Boolean emailVerified;
     public Set<String> roles;
     public LocalDateTime createdAt;
+
+    public StoreInfo assignedStore; // untuk ADMIN, MANAGER, STAFF
+    public List<StoreInfo> stores; // untuk OWNER
 
     public UserResponse() {
     }
@@ -33,5 +37,17 @@ public class UserResponse {
                 .collect(java.util.stream.Collectors.toSet());
 
         return response;
+    }
+
+    public static class StoreInfo {
+        public String id;
+        public String name;
+        public String slug;
+
+        public StoreInfo(String id, String name, String slug) {
+            this.id = id;
+            this.name = name;
+            this.slug = slug;
+        }
     }
 }
