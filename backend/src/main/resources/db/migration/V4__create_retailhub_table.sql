@@ -157,20 +157,21 @@ CREATE TABLE customers (
 -- ============================================================================
 -- Sales orders to customers
 -- Order number must be unique globally
--- status: PENDING, PAID, SHIPPED, COMPLETED, CANCELLED
+-- status: PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
 CREATE TABLE sales_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     store_id UUID NOT NULL,
     customer_id UUID,
     order_number VARCHAR(50) NOT NULL UNIQUE,
-    order_date DATE NOT NULL,
-    total_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    total_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+    shipping_address TEXT,
+    tracking_number VARCHAR(100),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
+    FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- ============================================================================
@@ -233,7 +234,6 @@ CREATE INDEX idx_sales_orders_store_id ON sales_orders(store_id);
 CREATE INDEX idx_sales_orders_customer_id ON sales_orders(customer_id);
 CREATE INDEX idx_sales_orders_order_number ON sales_orders(order_number);
 CREATE INDEX idx_sales_orders_status ON sales_orders(status);
-CREATE INDEX idx_sales_orders_order_date ON sales_orders(order_date);
 
 -- Sales Order Items indexes
 CREATE INDEX idx_sales_order_items_so_id ON sales_order_items(sales_order_id);
