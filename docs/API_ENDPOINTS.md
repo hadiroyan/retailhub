@@ -69,4 +69,12 @@ Base URL:
 
 ---
 
+## Explore (Public)
+
+| Method | Endpoint           | Description                                                                                |
+| ------ | ------------------ | ------------------------------------------------------------------------------------------ |
+| GET    | `/api/v1/products` | List all products from active stores (Public, filter: name/storeId/categoryId/sortByPrice) |
+
+---
+
 ### More endpoints will be added as new features are implemented.

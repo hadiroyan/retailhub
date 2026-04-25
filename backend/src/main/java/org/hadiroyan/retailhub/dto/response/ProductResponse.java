@@ -18,9 +18,17 @@ public class ProductResponse {
     public String imageUrls;
 
     public CategoryInfo category;
+    public StoreInfo store; // null when used in store-scoped endpoints
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class CategoryInfo {
+        public UUID id;
+        public String name;
+        public String slug;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class StoreInfo {
         public UUID id;
         public String name;
         public String slug;

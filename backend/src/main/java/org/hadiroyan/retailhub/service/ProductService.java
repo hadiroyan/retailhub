@@ -113,6 +113,28 @@ public class ProductService {
         return new PagedResponse<>(content, page, size, total);
     }
 
+    // Global
+    public PagedResponse<ProductResponse> listProductsGlobal(
+            String name, UUID storeId, UUID categoryId,
+            String sortByPrice, int page, int size) {
+
+        LOG.debugf("action=LIST_PRODUCTS_GLOBAL_START name=%s storeId=%s categoryId=%s page=%d size=%d",
+                name, storeId, categoryId, page, size);
+
+        List<Product> products = productRepository.findAllActive(
+                name, storeId, categoryId, sortByPrice, page, size);
+        long total = productRepository.countAllActive(name, storeId, categoryId);
+
+        List<ProductResponse> content = products.stream()
+                .map(productMapper::toResponseWithStore)
+                .toList();
+
+        LOG.infof("action=LIST_PRODUCTS_GLOBAL_SUCCESS total=%d page=%d size=%d",
+                total, page, size);
+
+        return new PagedResponse<>(content, page, size, total);
+    }
+
     // Read (Internal)
     public PagedResponse<ProductDetailResponse> listProductsInternal(
             UUID storeId, UUID userId, String name, UUID categoryId,

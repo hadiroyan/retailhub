@@ -57,4 +57,18 @@ public class ProductMapper {
 
         return response;
     }
+
+    public ProductResponse toResponseWithStore(Product product) {
+        ProductResponse response = toResponse(product);
+
+        if (product.store != null) {
+            ProductResponse.StoreInfo storeInfo = new ProductResponse.StoreInfo();
+            storeInfo.id = product.store.id;
+            storeInfo.name = product.store.name;
+            storeInfo.slug = product.store.slug;
+            response.store = storeInfo;
+        }
+
+        return response;
+    }
 }

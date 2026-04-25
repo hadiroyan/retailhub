@@ -83,4 +83,74 @@ public class ProductRepository implements PanacheRepositoryBase<Product, UUID> {
         }
         return Sort.by("name").ascending(); // default
     }
+
+    // Global — All products from all ACTIVE stores
+    // Filter: name, storeId, categoryId, sortByPrice
+    public List<Product> findAllActive(String name, UUID storeId, UUID categoryId,
+            String sortByPrice, int page, int size) {
+
+        StringBuilder query = new StringBuilder("""
+                SELECT p FROM Product p
+                JOIN p.store s
+                WHERE s.status = 'ACTIVE'
+                AND p.status = 'ACTIVE'
+                """);
+
+        Parameters params = new Parameters();
+
+        if (name != null && !name.isBlank()) {
+            query.append("AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) ");
+            params.and("name", name);
+        }
+
+        if (storeId != null) {
+            query.append("AND s.id = :storeId ");
+            params.and("storeId", storeId);
+        }
+
+        if (categoryId != null) {
+            query.append("AND p.category.id = :categoryId ");
+            params.and("categoryId", categoryId);
+        }
+
+        if ("asc".equalsIgnoreCase(sortByPrice)) {
+            query.append("ORDER BY p.price ASC");
+        } else if ("desc".equalsIgnoreCase(sortByPrice)) {
+            query.append("ORDER BY p.price DESC");
+        } else {
+            query.append("ORDER BY p.createdAt DESC");
+        }
+
+        return find(query.toString(), params)
+                .page(Page.of(page, size))
+                .list();
+    }
+
+    public long countAllActive(String name, UUID storeId, UUID categoryId) {
+        StringBuilder query = new StringBuilder("""
+                SELECT COUNT(p) FROM Product p
+                JOIN p.store s
+                WHERE s.status = 'ACTIVE'
+                AND p.status = 'ACTIVE'
+                """);
+
+        Parameters params = new Parameters();
+
+        if (name != null && !name.isBlank()) {
+            query.append("AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) ");
+            params.and("name", name);
+        }
+
+        if (storeId != null) {
+            query.append("AND s.id = :storeId ");
+            params.and("storeId", storeId);
+        }
+
+        if (categoryId != null) {
+            query.append("AND p.category.id = :categoryId ");
+            params.and("categoryId", categoryId);
+        }
+
+        return count(query.toString(), params);
+    }
 }
