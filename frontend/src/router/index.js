@@ -23,6 +23,12 @@ import CategoryListPage from "../views/stores/CategoryListPage.vue";
 import ProductListPage from "../views/stores/ProductListPage.vue";
 import StoreSettingPage from "../views/stores/StoreSettingPage.vue";
 import StoreDashboardPage from "../views/stores/StoreDashboardPage.vue";
+import ExplorePage from "../views/customer/ExplorePage.vue";
+import StoreDetailPage from "../views/customer/StoreDetailPage.vue";
+import ProductDetailPage from "../views/customer/ProductDetailPage.vue";
+import CartPage from "../views/customer/CartPage.vue";
+import CheckoutPage from "../views/customer/CheckoutPage.vue";
+import OrderHistoryPage from "../views/customer/OrderHistoryPage.vue";
 
 const routes = [
   // =========================================================================
@@ -248,6 +254,50 @@ const routes = [
       roles: ["ADMIN", "MANAGER", "STAFF"],
       title: "Products",
     },
+  },
+
+  // =========================================================================
+  // Customer Routes — public
+  // =========================================================================
+  {
+    path: ROUTE_PATHS.EXPLORE,
+    name: ROUTE_NAMES.EXPLORE,
+    component: ExplorePage,
+    meta: { title: "Explore Products" },
+  },
+  {
+    path: ROUTE_PATHS.STORE_DETAIL,
+    name: ROUTE_NAMES.STORE_DETAIL,
+    component: StoreDetailPage,
+    meta: { title: "Store" },
+  },
+  {
+    path: ROUTE_PATHS.PRODUCT_DETAIL,
+    name: ROUTE_NAMES.PRODUCT_DETAIL,
+    component: ProductDetailPage,
+    meta: { title: "Product" },
+  },
+
+  // =========================================================================
+  // Customer Routes — auth required
+  // =========================================================================
+  {
+    path: ROUTE_PATHS.CART,
+    name: ROUTE_NAMES.CART,
+    component: CartPage,
+    meta: { title: "Cart" },
+  },
+  {
+    path: ROUTE_PATHS.CHECKOUT,
+    name: ROUTE_NAMES.CHECKOUT,
+    component: CheckoutPage,
+    meta: { requiresAuth: true, roles: ["CUSTOMER"], title: "Checkout" },
+  },
+  {
+    path: ROUTE_PATHS.ORDER_HISTORY,
+    name: ROUTE_NAMES.ORDER_HISTORY,
+    component: OrderHistoryPage,
+    meta: { requiresAuth: true, roles: ["CUSTOMER"], title: "My Orders" },
   },
 
   // =========================================================================

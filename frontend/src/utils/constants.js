@@ -35,6 +35,11 @@ export const API_ENDPOINTS = {
     BY_SKU: (storeId, sku) => `/api/v1/stores/${storeId}/products/${sku}`,
     DETAIL: (storeId, sku) => `/api/v1/stores/${storeId}/products/${sku}/detail`,
   },
+
+  EXPLORE: {
+    PRODUCTS: "/api/v1/products",
+    STORE_PRODUCTS: (slug) => `/api/v1/stores/${slug}/products`,
+  },
 };
 
 // User Roles
@@ -98,6 +103,13 @@ export const ROUTE_NAMES = {
   // Public
   EXPLORE_STORES: "explore-stores",
   STORE_DETAIL: "store-detail",
+
+  EXPLORE: "explore",
+  STORE_DETAIL: "store-detail",
+  PRODUCT_DETAIL: "product-detail",
+  CART: "cart",
+  CHECKOUT: "checkout",
+  ORDER_HISTORY: "order-history",
 };
 
 // Route Paths
@@ -138,4 +150,11 @@ export const ROUTE_PATHS = {
   // Public
   EXPLORE_STORES: "/stores",
   STORE_DETAIL: "/stores/:slug",
+
+  EXPLORE: "/explore",
+  STORE_DETAIL: "/stores/:slug",
+  PRODUCT_DETAIL: "/stores/:storeSlug/products/:sku",
+  CART: "/cart",
+  CHECKOUT: "/checkout",
+  ORDER_HISTORY: "/orders",
 };
