@@ -79,7 +79,6 @@ public class ProductService {
         product.stockQuantity = request.stockQuantity != null ? request.stockQuantity : 0;
         product.minStockLevel = request.minStockLevel != null ? request.minStockLevel : 10;
         product.status = request.status != null ? request.status : "ACTIVE";
-        product.imageUrls = request.imageUrls;
 
         productRepository.persist(product);
 
@@ -219,7 +218,6 @@ public class ProductService {
         product.stockQuantity = request.stockQuantity;
         product.minStockLevel = request.minStockLevel;
         product.status = request.status;
-        product.imageUrls = request.imageUrls;
         product.category = category;
 
         LOG.infof("action=UPDATE_PRODUCT_SUCCESS userId=%s storeId=%s productId=%s sku=%s categoryId=%s",

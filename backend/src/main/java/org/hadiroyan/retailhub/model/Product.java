@@ -2,13 +2,17 @@ package org.hadiroyan.retailhub.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import org.hadiroyan.retailhub.converter.JsonbListConverter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -59,9 +63,10 @@ public class Product extends PanacheEntityBase {
     @Column(nullable = false, length = 20)
     public String status = ProductStatus.ACTIVE.name();
 
-    // JSON array stored as text: ["url1", "url2"]
-    @Column(name = "image_urls", columnDefinition = "TEXT")
-    public String imageUrls;
+    // JSON array stored as jsonb: ["url1", "url2"]
+    @Convert(converter = JsonbListConverter.class)
+    @Column(name = "image_urls", columnDefinition = "jsonb")
+    public List<String> imageUrls = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -35,6 +35,4 @@ public class UpdateProductRequest {
     public String status;
 
     public UUID categoryId;
-
-    public String imageUrls;
 }

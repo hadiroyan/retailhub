@@ -39,6 +39,4 @@ public class CreateProductRequest {
     public String status = "ACTIVE";
 
     public UUID categoryId;
-
-    public String imageUrls;
 }

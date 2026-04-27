@@ -37,6 +37,12 @@ public class User extends PanacheEntityBase {
     @Column(name = "full_name", nullable = false)
     public String fullName;
 
+    @Column
+    public String phone;
+
+    @Column(name = "address", columnDefinition = "TEXT")
+    public String address;
+
     @Column(length = 20, nullable = false)
     public String provider = "LOCAL";
 

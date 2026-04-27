@@ -2,6 +2,7 @@ package org.hadiroyan.retailhub.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,7 +22,7 @@ public class ProductDetailResponse {
     public Integer stockQuantity;
     public Integer minStockLevel;
     public String status;
-    public String imageUrls;
+    public List<String> imageUrls;
     public LocalDateTime createdAt;
     public LocalDateTime updatedAt;
 
