@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.hadiroyan.retailhub.converter.JsonbListConverter;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -65,6 +66,7 @@ public class Product extends PanacheEntityBase {
 
     // JSON array stored as jsonb: ["url1", "url2"]
     @Convert(converter = JsonbListConverter.class)
+    @ColumnTransformer(write = "?::jsonb")
     @Column(name = "image_urls", columnDefinition = "jsonb")
     public List<String> imageUrls = new ArrayList<>();
 

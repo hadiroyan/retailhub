@@ -18,7 +18,9 @@ public class ProductMapper {
         response.price = product.price;
         response.stockQuantity = product.stockQuantity;
         response.status = product.status;
-        response.imageUrls = product.imageUrls;
+        response.imageUrls = product.imageUrls.stream()
+                .map(path -> "/api/v1/files/" + path)
+                .toList();
 
         if (product.category != null) {
             ProductResponse.CategoryInfo categoryInfo = new ProductResponse.CategoryInfo();
@@ -43,7 +45,9 @@ public class ProductMapper {
         response.stockQuantity = product.stockQuantity;
         response.minStockLevel = product.minStockLevel;
         response.status = product.status;
-        response.imageUrls = product.imageUrls;
+        response.imageUrls = product.imageUrls.stream()
+                .map(path -> "/api/v1/files/" + path)
+                .toList();
         response.createdAt = product.createdAt;
         response.updatedAt = product.updatedAt;
 
