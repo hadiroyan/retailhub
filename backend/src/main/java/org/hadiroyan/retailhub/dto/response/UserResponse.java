@@ -12,6 +12,8 @@ public class UserResponse {
     public UUID id;
     public String email;
     public String fullName;
+    public String phone;
+    public String address;
     public Boolean enabled;
     public Boolean emailVerified;
     public Set<String> roles;
@@ -28,6 +30,8 @@ public class UserResponse {
         response.id = user.id;
         response.email = user.email;
         response.fullName = user.fullName;
+        response.phone = user.phone;
+        response.address = user.address;
         response.enabled = user.enabled;
         response.emailVerified = user.emailVerified;
         response.createdAt = user.createdAt;

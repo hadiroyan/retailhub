@@ -4,6 +4,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterOwnerRequest;
+import org.hadiroyan.retailhub.dto.request.UpdateProfileRequest;
 import org.hadiroyan.retailhub.dto.response.ApiResponse;
 import org.hadiroyan.retailhub.dto.response.AuthResponse;
 import org.hadiroyan.retailhub.dto.response.UserResponse;
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -130,6 +132,24 @@ public class AuthResource {
 
         return Response.ok(ApiResponse.success(
                 "Current user retrieved successfully",
+                userResponse)).build();
+    }
+
+    @PUT
+    @Path("/me")
+    @RolesAllowed({ "SUPER_ADMIN", "OWNER", "ADMIN", "MANAGER", "STAFF", "CUSTOMER" })
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateProfile(@Valid UpdateProfileRequest request) {
+        String email = jwt.getName();
+        LOG.debugf("action=UPDATE_PROFILE_REQUEST email=%s", email);
+
+        UserResponse userResponse = authService.updateProfile(email, request);
+
+        LOG.infof("action=UPDATE_PROFILE_RESPONSE email=%s userId=%s",
+                email, userResponse.id);
+
+        return Response.ok(ApiResponse.success(
+                "Profile updated successfully",
                 userResponse)).build();
     }
 

@@ -16,6 +16,7 @@ Base URL:
 | POST   | `/api/auth/register-owner`    | Register new store owner         |
 | GET    | `/api/auth/me`                | Get currently authenticated user |
 | POST   | `/api/auth/logout`            | Logout current user              |
+| PUT    | `/api/auth/me`                | Update current user profile      |
 
 ---
 

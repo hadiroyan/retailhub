@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterOwnerRequest;
+import org.hadiroyan.retailhub.dto.request.UpdateProfileRequest;
 import org.hadiroyan.retailhub.dto.response.ApiResponse;
 import org.hadiroyan.retailhub.dto.response.AuthResponse;
 import org.hadiroyan.retailhub.dto.response.UserResponse;
@@ -176,6 +177,26 @@ public class AuthService {
 
     public String generateTokenForUser(User user) {
         return jwtTokenService.generateToken(user);
+    }
+
+    @Transactional
+    public UserResponse updateProfile(String email, UpdateProfileRequest request) {
+        LOG.debugf("action=UPDATE_PROFILE_START email=%s", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=USER_NOT_FOUND email=%s", email);
+                    return new NotFoundException("User not found");
+                });
+
+        user.fullName = request.fullName;
+        user.phone = request.phone;
+        user.address = request.address;
+
+        LOG.infof("action=UPDATE_PROFILE_SUCCESS userId=%s email=%s",
+                user.id, email);
+
+        return buildUserResponse(user);
     }
 
     // Fetch store data for user to include in JWT token.
