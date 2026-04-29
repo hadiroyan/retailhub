@@ -29,12 +29,25 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
                     <!-- Image -->
-                    <div class="w-full aspect-square bg-gray-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-box text-gray-300 text-6xl"></i>
+                    <div
+                        class="w-full aspect-square bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
+                        <img v-if="product.imageUrls?.length > 0"
+                            :src="getImageUrl(selectedImage || product.imageUrls[0])" :alt="product.name"
+                            class="w-full h-full object-cover" />
+                        <i v-else class="fas fa-box text-gray-300 text-6xl"></i>
                     </div>
 
                     <!-- Info -->
                     <div class="flex flex-col">
+                        <!-- Thumbnails row jika ada multiple images -->
+                        <div v-if="product.imageUrls?.length > 1" class="flex gap-2 mt-3 mb-2">
+                            <button v-for="url in product.imageUrls" :key="url" @click="selectedImage = url"
+                                class="w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer"
+                                :class="(selectedImage || product.imageUrls[0]) === url ? 'border-blue-600' : 'border-transparent'">
+                                <img :src="getImageUrl(url)" :alt="product.name" class="w-full h-full object-cover" />
+                            </button>
+                        </div>
+
                         <!-- Store badge -->
                         <button @click="goToStore" class="inline-flex items-center gap-1 
                             text-xs text-gray-500 bg-gray-100 hover:bg-gray-200 hover:text-gray-700
@@ -126,7 +139,7 @@ import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAMES, API_ENDPOINTS } from '../../utils/constants';
-import { formatCurrency } from '../../utils/helper';
+import { formatCurrency, getImageUrl } from '../../utils/helper';
 import api from '../../services/api';
 
 const router = useRouter();
@@ -137,6 +150,7 @@ const { isAuthenticated } = storeToRefs(authStore);
 
 const product = ref(null);
 const loading = ref(true);
+const selectedImage = ref(null);
 
 const fetchProduct = async () => {
     loading.value = true;

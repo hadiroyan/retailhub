@@ -20,7 +20,7 @@
                             <p v-if="store.description" class="text-sm text-gray-500 mb-3">{{ store.description }}</p>
                             <div class="flex flex-wrap gap-4 text-xs text-gray-400">
                                 <span v-if="store.address"><i class="fas fa-map-marker-alt mr-1"></i>{{ store.address
-                                    }}</span>
+                                }}</span>
                                 <span v-if="store.phone"><i class="fas fa-phone mr-1"></i>{{ store.phone }}</span>
                                 <span v-if="store.email"><i class="fas fa-envelope mr-1"></i>{{ store.email }}</span>
                             </div>
@@ -55,8 +55,11 @@
                     <div v-for="product in products" :key="product.id" @click="goToProduct(product)"
                         class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer">
                         <!-- Image placeholder -->
-                        <div class="w-full h-40 bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
-                            <i class="fas fa-box text-gray-300 text-3xl"></i>
+                        html<div
+                            class="w-full h-40 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
+                            <img v-if="product.imageUrls?.length > 0" :src="getImageUrl(product.imageUrls[0])"
+                                :alt="product.name" class="w-full h-full object-cover" />
+                            <i v-else class="fas fa-box text-gray-300 text-3xl"></i>
                         </div>
 
                         <h3 class="font-medium text-gray-900 text-sm mb-1 line-clamp-2">{{ product.name }}</h3>
@@ -142,7 +145,7 @@ import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import StoreStatusBadge from '../../components/common/StoreStatusBadge.vue';
 import { useCartStore } from '../../stores/cartStore';
 import { ROUTE_NAMES, API_ENDPOINTS } from '../../utils/constants';
-import { formatCurrency, debounce } from '../../utils/helper';
+import { formatCurrency, debounce, getImageUrl } from '../../utils/helper';
 import api from '../../services/api';
 import { useAuthStore } from '../../stores/auth';
 import { storeToRefs } from 'pinia';

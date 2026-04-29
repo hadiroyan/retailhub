@@ -46,8 +46,11 @@
                 <div v-for="product in products" :key="product.id" @click="goToProduct(product)"
                     class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer">
                     <!-- Product image placeholder -->
-                    <div class="w-full h-40 bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
-                        <i class="fas fa-box text-gray-300 text-3xl"></i>
+                    <div
+                        class="w-full h-40 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
+                        <img v-if="product.imageUrls?.length > 0" :src="getImageUrl(product.imageUrls[0])"
+                            :alt="product.name" class="w-full h-full object-cover" />
+                        <i v-else class="fas fa-box text-gray-300 text-3xl"></i>
                     </div>
 
                     <!-- Store badge -->
@@ -127,7 +130,7 @@ import { useRouter } from 'vue-router';
 import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useCartStore } from '../../stores/cartStore';
 import { ROUTE_NAMES, API_ENDPOINTS } from '../../utils/constants';
-import { formatCurrency, debounce } from '../../utils/helper';
+import { formatCurrency, debounce, getImageUrl } from '../../utils/helper';
 import api from '../../services/api';
 import { useAuthStore } from '../../stores/auth';
 import { storeToRefs } from 'pinia';
