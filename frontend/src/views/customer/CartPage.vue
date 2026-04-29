@@ -47,8 +47,11 @@
                             <div v-for="item in storeGroup.items" :key="item.productId"
                                 class="flex items-center gap-4 px-4 py-3">
                                 <!-- Image placeholder -->
-                                <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                                    <i class="fas fa-box text-gray-300"></i>
+                                <div
+                                    class="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                                    <img v-if="item.imageUrl" :src="getImageUrl(item.imageUrl)" :alt="item.name"
+                                        class="w-full h-full object-cover" />
+                                    <i v-else class="fas fa-box text-gray-300"></i>
                                 </div>
 
                                 <!-- Info -->
@@ -160,7 +163,7 @@ import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAMES } from '../../utils/constants';
-import { formatCurrency } from '../../utils/helper';
+import { formatCurrency, getImageUrl } from '../../utils/helper';
 
 const router = useRouter();
 const cartStore = useCartStore();

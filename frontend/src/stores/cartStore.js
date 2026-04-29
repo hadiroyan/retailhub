@@ -70,6 +70,7 @@ export const useCartStore = defineStore("cart", () => {
         storeId: store.id,
         storeName: store.name,
         storeSlug: store.slug,
+        imageUrl: product.imageUrls?.[0] || null,
       });
     }
   }

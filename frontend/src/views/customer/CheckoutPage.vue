@@ -88,13 +88,16 @@
                         <div class="divide-y divide-gray-100">
                             <div v-for="item in storeGroup.items" :key="item.productId"
                                 class="flex items-center gap-3 px-4 py-3">
-                                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                                    <i class="fas fa-box text-gray-300 text-sm"></i>
+                                <div
+                                    class="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                                    <img v-if="item.imageUrl" :src="getImageUrl(item.imageUrl)" :alt="item.name"
+                                        class="w-full h-full object-cover" />
+                                    <i v-else class="fas fa-box text-gray-300 text-sm"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
                                     <p class="text-xs text-gray-400">{{ item.quantity }} x {{ formatCurrency(item.price)
-                                        }}</p>
+                                    }}</p>
                                 </div>
                                 <p class="text-sm font-semibold text-gray-900 shrink-0">
                                     {{ formatCurrency(item.price * item.quantity) }}
@@ -175,7 +178,7 @@ import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAMES } from '../../utils/constants';
-import { formatCurrency } from '../../utils/helper';
+import { formatCurrency, getImageUrl } from '../../utils/helper';
 
 const router = useRouter();
 const cartStore = useCartStore();
