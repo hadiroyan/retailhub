@@ -46,3 +46,6 @@ nb-configuration.xml
 
 # Private keys
 keys/*.pem
+
+# uploads-folder
+/uploads/
