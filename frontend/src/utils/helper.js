@@ -57,3 +57,9 @@ export const parseJwt = (token) => {
     return null;
   }
 }
+
+export const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path; // sudah full URL
+  return `${import.meta.env.VITE_API_BASE_URL}${path}`;
+};

@@ -61,6 +61,7 @@
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
+                        <th class="text-left px-4 py-3 font-medium text-gray-600">Image</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-600">Product</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-600">SKU</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-600">Category</th>
@@ -73,16 +74,27 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     <tr v-for="product in products" :key="product.id" class="hover:bg-gray-50 transition-colors">
+                        <!-- Thumbnail -->
+                        <td class="px-4 py-3">
+                            <div
+                                class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+                                <img v-if="product.imageUrls?.length > 0" :src="getImageUrl(product.imageUrls[0])"
+                                    :alt="product.name" class="w-full h-full object-cover" />
+                                <i v-else class="fas fa-box text-gray-300 text-sm"></i>
+                            </div>
+                        </td>
                         <td class="px-4 py-3">
                             <p class="font-medium text-gray-900">{{ product.name }}</p>
-                            <p v-if="product.description" class="text-xs text-gray-400 truncate max-w-48">{{
-                                product.description }}</p>
+                            <p v-if="product.description" class="text-xs text-gray-400 truncate max-w-48">
+                                {{ product.description }}
+                            </p>
                         </td>
                         <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ product.sku }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ product.category?.name || '-' }}</td>
                         <td class="px-4 py-3 font-medium text-gray-900">{{ formatCurrency(product.price) }}</td>
                         <td class="px-4 py-3 text-gray-500">
-                            {{ product.costPrice ? formatCurrency(product.costPrice) : '-' }}</td>
+                            {{ product.costPrice ? formatCurrency(product.costPrice) : '-' }}
+                        </td>
                         <td class="px-4 py-3">
                             <span :class="product.stockQuantity <= 0 ? 'text-red-600 font-medium' : 'text-gray-700'">
                                 {{ product.stockQuantity }}
@@ -96,6 +108,11 @@
                         </td>
                         <td v-if="canWrite" class="px-4 py-3">
                             <div class="flex items-center gap-1">
+                                <button @click="openImages(product)"
+                                    class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="Manage Images">
+                                    <i class="fas fa-image text-xs"></i>
+                                </button>
                                 <button @click="openEdit(product)"
                                     class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                     title="Edit">
@@ -186,7 +203,6 @@
                                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                         </div>
-
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
@@ -229,6 +245,65 @@
             </div>
         </Teleport>
 
+        <!-- Image management modal -->
+        <Teleport to="body">
+            <div v-if="showImageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+                @click.self="showImageModal = false">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">Manage Images</h3>
+                    <p class="text-sm text-gray-500 mb-4">
+                        {{ selectedProduct?.name }} · {{ selectedProduct?.imageUrls?.length || 0 }}/5 images
+                    </p>
+
+                    <!-- Existing images -->
+                    <div v-if="selectedProduct?.imageUrls?.length > 0" class="grid grid-cols-3 gap-2 mb-4">
+                        <div v-for="(url, index) in selectedProduct.imageUrls" :key="url"
+                            class="relative group aspect-square rounded-lg overflow-hidden bg-gray-100">
+                            <img :src="getImageUrl(url)" :alt="`Image ${index + 1}`"
+                                class="w-full h-full object-cover" />
+                            <!-- Thumbnail badge -->
+                            <div v-if="index === 0"
+                                class="absolute top-1 left-1 text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded font-medium">
+                                Thumbnail
+                            </div>
+                            <!-- Delete button -->
+                            <button @click="handleDeleteImage(url)"
+                                class="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                                :disabled="imageLoading">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div v-else class="flex flex-col items-center justify-center py-6 bg-gray-50 rounded-lg mb-4">
+                        <i class="fas fa-image text-gray-300 text-3xl mb-2"></i>
+                        <p class="text-sm text-gray-400">No images yet</p>
+                    </div>
+
+                    <!-- Upload new image -->
+                    <div v-if="(selectedProduct?.imageUrls?.length || 0) < 5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Image</label>
+                        <div class="flex items-center gap-3">
+                            <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp"
+                                class="flex-1 text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                @change="handleFileSelect" />
+                            <button @click="handleUploadImage" :disabled="!selectedFile || imageLoading"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 shrink-0">
+                                <i v-if="imageLoading" class="fas fa-spinner animate-spin"></i>
+                                <span v-else>Upload</span>
+                            </button>
+                        </div>
+                        <p v-if="imageError" class="text-xs text-red-500 mt-1">{{ imageError }}</p>
+                    </div>
+                    <p v-else class="text-xs text-gray-400 text-center py-2">Maximum 5 images reached</p>
+
+                    <button @click="showImageModal = false"
+                        class="w-full mt-4 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </Teleport>
+
         <!-- Delete modal -->
         <DeleteConfirmModal v-model="showDeleteModal" :title="`Delete &quot;${selectedProduct?.name}&quot;?`"
             description="This product will be permanently deleted." :loading="deleteLoading" @confirm="handleDelete" />
@@ -244,8 +319,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.vue';
 import DeleteConfirmModal from '../../components/modals/DeleteConfirmModal.vue';
 import { useStoreStore } from '../../stores/storeStore';
 import { useAuthStore } from '../../stores/auth';
-import { ROLES, PRODUCT_STATUS } from '../../utils/constants';
-import { formatCurrency, debounce } from '../../utils/helper';
+import { ROLES } from '../../utils/constants';
+import { formatCurrency, debounce, getImageUrl } from '../../utils/helper';
 
 const route = useRoute();
 const storeStore = useStoreStore();
@@ -405,6 +480,69 @@ const changePage = (page) => {
         page,
         size: pageSize.value,
     });
+};
+
+// Image management
+const showImageModal = ref(false);
+const imageLoading = ref(false);
+const imageError = ref(null);
+const selectedFile = ref(null);
+const fileInputRef = ref(null);
+
+const openImages = (product) => {
+    selectedProduct.value = product;
+    selectedFile.value = null;
+    imageError.value = null;
+    showImageModal.value = true;
+};
+
+const handleFileSelect = (event) => {
+    selectedFile.value = event.target.files[0] || null;
+    imageError.value = null;
+};
+
+const handleUploadImage = async () => {
+    if (!selectedFile.value) return;
+    imageLoading.value = true;
+    imageError.value = null;
+    try {
+        const formData = new FormData();
+        formData.append('image', selectedFile.value);
+        const result = await storeStore.uploadProductImage(
+            storeId.value, selectedProduct.value.id, formData
+        );
+        // Update selectedProduct with new data
+        selectedProduct.value = result;
+        // Reset file input
+        selectedFile.value = null;
+        if (fileInputRef.value) fileInputRef.value.value = '';
+        // Refresh list
+        fetchWithFilters();
+    } catch (err) {
+        console.log(err);
+
+        imageError.value = err.response?.data?.message || 'Failed to upload image';
+    } finally {
+        imageLoading.value = false;
+    }
+};
+
+const handleDeleteImage = async (url) => {
+    // Extract filename 
+    const filename = url.split('/').pop();
+    imageLoading.value = true;
+    imageError.value = null;
+    try {
+        const result = await storeStore.deleteProductImage(
+            storeId.value, selectedProduct.value.id, filename
+        );
+        selectedProduct.value = result;
+        fetchWithFilters();
+    } catch (err) {
+        imageError.value = err.response?.data?.message || 'Failed to delete image';
+    } finally {
+        imageLoading.value = false;
+    }
 };
 
 onMounted(async () => {

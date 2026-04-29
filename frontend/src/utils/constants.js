@@ -34,6 +34,8 @@ export const API_ENDPOINTS = {
     BY_ID: (storeId, id) => `/api/v1/stores/${storeId}/products/${id}`,
     BY_SKU: (storeId, sku) => `/api/v1/stores/${storeId}/products/${sku}`,
     DETAIL: (storeId, sku) => `/api/v1/stores/${storeId}/products/${sku}/detail`,
+    IMAGES: (storeId, productId) => `/api/v1/stores/${storeId}/products/${productId}/images`,
+    IMAGE_DELETE: (storeId, productId, filename) => `/api/v1/stores/${storeId}/products/${productId}/images/${filename}`,
   },
 
   EXPLORE: {

@@ -168,6 +168,23 @@ export const storeService = {
     );
     return response.data;
   },
+
+  async uploadProductImage(storeId, productId, formData) {
+    const response = await api.post(
+      API_ENDPOINTS.PRODUCTS.IMAGES(storeId, productId),
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return response.data;
+  },
+
+  async deleteProductImage(storeId, productId, filename) {
+    const response = await api.delete(
+      API_ENDPOINTS.PRODUCTS.IMAGE_DELETE(storeId, productId, filename)
+    );
+    return response.data;
+  },
+  
 };
 
 export default storeService;

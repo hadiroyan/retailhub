@@ -373,6 +373,39 @@ export const useStoreStore = defineStore("store", () => {
     }
   }
 
+  async function uploadProductImage(storeId, productId, formData) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await storeService.uploadProductImage(storeId, productId, formData);
+      // Update product di list jika ada
+      const index = products.value.findIndex(p => p.id === productId);
+      if (index !== -1) products.value[index] = response.data;
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to upload image';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function deleteProductImage(storeId, productId, filename) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await storeService.deleteProductImage(storeId, productId, filename);
+      const index = products.value.findIndex(p => p.id === productId);
+      if (index !== -1) products.value[index] = response.data;
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to delete image';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   // =========================================================================
   // Helpers
   // =========================================================================
@@ -428,7 +461,9 @@ export const useStoreStore = defineStore("store", () => {
     fetchInternalProducts,
     createProduct,
     updateProduct,
-    deleteProduct, 
+    deleteProduct,
+    uploadProductImage,
+    deleteProductImage,
 
     // Helpers
     setActiveStore,
