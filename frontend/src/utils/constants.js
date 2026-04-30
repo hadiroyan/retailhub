@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     ME: "/api/auth/me",
     LOGOUT: "/api/auth/logout",
     UPDATE_PROFILE: "/api/auth/me",
+    CHANGE_PASSWORD: "/api/auth/change-password",
   },
 
   STORES: {

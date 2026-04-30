@@ -149,6 +149,20 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function changePassword(data) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await authService.changePassword(data);
+      return response;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to update profile';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function logout() {
     loading.value = true;
     error.value = null;
@@ -203,5 +217,6 @@ export const useAuthStore = defineStore("auth", () => {
     clearError,
     resetAuth,
     updateProfile,
+    changePassword,
   };
 });

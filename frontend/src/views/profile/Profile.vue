@@ -8,8 +8,9 @@
                 <p class="text-sm text-gray-500 mt-0.5">Your account information</p>
             </div>
 
-            <div class="max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6 px-8">
-                <!-- User info card -->
+            <div class="max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6 px-8">
+
+                <!-- Account Info card -->
                 <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 mb-6">
                     <h2 class="text-base font-semibold text-gray-900 mb-4">Account Info</h2>
                     <div class="space-y-4 text-sm">
@@ -83,51 +84,128 @@
 
                 <!-- Change password card -->
                 <div class="lg:col-span-1 bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                    <div class="flex items-center gap-2 mb-4">
-                        <h2 class="text-base font-semibold text-gray-900">Change Password</h2>
-                        <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-400 rounded-full">Coming soon</span>
-                    </div>
-
+                    <h2 class="text-base font-semibold text-gray-900 mb-4">Change Password</h2>
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-1">Current Password</label>
-                            <input disabled type="password" placeholder="Enter current password"
-                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-1">New Password</label>
-                            <input disabled type="password" placeholder="Min 8 characters"
-                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-1">Confirm New Password</label>
-                            <input disabled type="password" placeholder="Repeat new password"
-                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed" />
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+
+                            <input v-model="passwordForm.currentPassword"
+                                :type="showCurrentPassword ? 'text' : 'password'" placeholder="Enter current password"
+                                class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                :class="{ 'border-red-400': passwordError }" />
+
+                            <button type="button" class="absolute right-3 top-[31px] text-gray-500 hover:text-gray-700"
+                                @click="showCurrentPassword = !showCurrentPassword">
+                                <i :class="['fas', showCurrentPassword ? 'fa-eye' : 'fa-eye-slash']"></i>
+                            </button>
                         </div>
 
-                        <button disabled
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-300 rounded-lg cursor-not-allowed"
-                            title="Coming soon">
-                            Change Password
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+
+                            <input v-model="passwordForm.newPassword" :type="showNewPassword ? 'text' : 'password'"
+                                placeholder="Min 8 characters"
+                                class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                :class="{ 'border-red-400': passwordError }" />
+
+                            <button type="button" class="absolute right-3 top-[31px] text-gray-500 hover:text-gray-700"
+                                @click="showNewPassword = !showNewPassword">
+                                <i :class="['fas', showNewPassword ? 'fa-eye' : 'fa-eye-slash']"></i>
+                            </button>
+                        </div>
+
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+
+                            <input v-model="passwordForm.confirmPassword"
+                                :type="showConfirmNewPassword ? 'text' : 'password'" placeholder="Repeat new password"
+                                class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                :class="{ 'border-red-400': passwordError }" />
+
+                            <button type="button" class="absolute right-3 top-[31px] text-gray-500 hover:text-gray-700"
+                                @click="showConfirmNewPassword = !showConfirmNewPassword">
+                                <i :class="['fas', showConfirmNewPassword ? 'fa-eye' : 'fa-eye-slash']"></i>
+                            </button>
+                        </div>
+
+                        <div v-if="passwordError"
+                            class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                            {{ passwordError }}
+                        </div>
+
+                        <button @click="openConfirmModal" :disabled="passwordLoading"
+                            class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50">
+                            <span v-if="passwordLoading"><i
+                                    class="fas fa-spinner animate-spin mr-1"></i>Changing...</span>
+                            <span v-else>Change Password</span>
                         </button>
                     </div>
                 </div>
 
             </div>
         </div>
+
+        <!-- Confirm change password modal -->
+        <Teleport to="body">
+            <div v-if="showConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
+                    <div class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-lock text-yellow-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Change Password?</h3>
+                    <p class="text-sm text-gray-500 mb-6">
+                        You will be logged out after changing your password and need to login again.
+                    </p>
+                    <div class="flex gap-3">
+                        <button @click="showConfirmModal = false"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button @click="handleChangePassword" :disabled="passwordLoading"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50">
+                            <span v-if="passwordLoading"><i class="fas fa-spinner animate-spin mr-1"></i></span>
+                            <span v-else>Yes, Change</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- Success modal — after password changed -->
+        <Teleport to="body">
+            <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
+                    <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Password Changed!</h3>
+                    <p class="text-sm text-gray-500 mb-6">
+                        Your password has been changed successfully. Please login again with your new password.
+                    </p>
+                    <button @click="handleSuccessConfirm"
+                        class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                        Login Again
+                    </button>
+                </div>
+            </div>
+        </Teleport>
+
     </component>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import DashboardLayout from '../../layouts/DashboardLayout.vue';
 import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useAuthStore } from '../../stores/auth';
-import { ROLES } from '../../utils/constants';
+import { ROLES, ROUTE_NAMES } from '../../utils/constants';
+import authService from '../../services/authService';
 
+const router = useRouter();
 const authStore = useAuthStore();
-const { user, userName, userEmail, userRole } = storeToRefs(authStore);
+const { user, userEmail, userRole } = storeToRefs(authStore);
 
 const isCustomer = computed(() => userRole.value === ROLES.CUSTOMER);
 
@@ -183,5 +261,61 @@ const handleUpdateProfile = async () => {
     } finally {
         profileLoading.value = false;
     }
+};
+
+// =========================================================================
+// Change password
+// =========================================================================
+const passwordForm = ref({ currentPassword: '', newPassword: '', confirmPassword: '' });
+const passwordLoading = ref(false);
+const passwordError = ref(null);
+const showConfirmModal = ref(false);
+const showSuccessModal = ref(false);
+
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmNewPassword = ref(false);
+
+const openConfirmModal = () => {
+    passwordError.value = null;
+
+    if (!passwordForm.value.currentPassword) {
+        passwordError.value = 'Current password is required';
+        return;
+    }
+    if (!passwordForm.value.newPassword || passwordForm.value.newPassword.length < 8) {
+        passwordError.value = 'New password must be at least 8 characters';
+        return;
+    }
+    if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+        passwordError.value = 'Passwords do not match';
+        return;
+    }
+
+    showConfirmModal.value = true;
+};
+
+const handleChangePassword = async () => {
+    passwordLoading.value = true;
+    try {
+        await authStore.changePassword(passwordForm.value);
+        showConfirmModal.value = false;
+        showSuccessModal.value = true;
+        // Reset form
+        passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
+    } catch (err) {
+        console.log(err);
+
+        showConfirmModal.value = false;
+        passwordError.value = err.response?.data?.message || 'Failed to change password';
+    } finally {
+        passwordLoading.value = false;
+    }
+};
+
+const handleSuccessConfirm = async () => {
+    showSuccessModal.value = false;
+    await authStore.logout();
+    router.push({ name: ROUTE_NAMES.LOGIN });
 };
 </script>

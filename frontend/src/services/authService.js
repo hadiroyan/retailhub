@@ -37,6 +37,11 @@ export const authService = {
     const response = await api.put(API_ENDPOINTS.AUTH.UPDATE_PROFILE, data);
     return response.data;
   },
+
+  async changePassword(data) {
+    const response = await api.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, data);
+    return response.data;
+  }
 };
 
 export default authService;
