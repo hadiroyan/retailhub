@@ -1,6 +1,7 @@
 package org.hadiroyan.retailhub.resource;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.hadiroyan.retailhub.dto.request.ChangePasswordRequest;
 import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterOwnerRequest;
@@ -151,6 +152,26 @@ public class AuthResource {
         return Response.ok(ApiResponse.success(
                 "Profile updated successfully",
                 userResponse)).build();
+    }
+
+    @POST
+    @Path("/change-password")
+    @RolesAllowed({ "SUPER_ADMIN", "OWNER", "ADMIN", "MANAGER", "STAFF", "CUSTOMER" })
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response changePassword(@Valid ChangePasswordRequest request) {
+        String email = jwt.getName();
+        LOG.debugf("action=CHANGE_PASSWORD_REQUEST email=%s", email);
+
+        authService.changePassword(email, request);
+
+        // Clear JWT cookie — force logout
+        var logoutCookie = cookieUtil.createLogoutCookie();
+
+        LOG.infof("action=CHANGE_PASSWORD_RESPONSE email=%s", email);
+
+        return Response.ok(ApiResponse.success("Password changed successfully. Please login again."))
+                .cookie(logoutCookie)
+                .build();
     }
 
     @POST

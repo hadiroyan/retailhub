@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hadiroyan.retailhub.dto.request.ChangePasswordRequest;
 import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterOwnerRequest;
@@ -13,6 +14,7 @@ import org.hadiroyan.retailhub.dto.response.ApiResponse;
 import org.hadiroyan.retailhub.dto.response.AuthResponse;
 import org.hadiroyan.retailhub.dto.response.UserResponse;
 import org.hadiroyan.retailhub.exception.AccountDisabledException;
+import org.hadiroyan.retailhub.exception.BadRequestException;
 import org.hadiroyan.retailhub.exception.EmailAlreadyExistsException;
 import org.hadiroyan.retailhub.exception.NotFoundException;
 import org.hadiroyan.retailhub.exception.RoleNotFoundException;
@@ -197,6 +199,38 @@ public class AuthService {
                 user.id, email);
 
         return buildUserResponse(user);
+    }
+
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        LOG.debugf("action=CHANGE_PASSWORD_START email=%s", email);
+
+        // Validasi newPassword dan confirmPassword match
+        if (!request.newPassword.equals(request.confirmPassword)) {
+            throw new BadRequestException("New password and confirm password do not match");
+        }
+
+        // Validasi newPassword tidak sama dengan currentPassword
+        if (request.currentPassword.equals(request.newPassword)) {
+            throw new BadRequestException("New password must be different from current password");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=USER_NOT_FOUND email=%s", email);
+                    return new NotFoundException("User not found");
+                });
+
+        // Verify current password
+        if (!passwordService.verify(request.currentPassword, user.password)) {
+            LOG.warnf("action=CHANGE_PASSWORD_FAILED_WRONG_PASSWORD email=%s", email);
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        user.password = passwordService.hash(request.newPassword);
+
+        LOG.infof("action=CHANGE_PASSWORD_SUCCESS userId=%s email=%s",
+                user.id, email);
     }
 
     // Fetch store data for user to include in JWT token.
