@@ -27,6 +27,22 @@
                 <!-- Left: Shipping form -->
                 <div class="lg:col-span-2 space-y-4">
 
+                    <!-- Incomplete profile warning -->
+                    <div v-if="!isProfileComplete"
+                        class="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5"></i>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-yellow-800">Profile incomplete</p>
+                            <p class="text-xs text-yellow-600 mt-0.5">
+                                Please add your phone number and address to proceed with checkout.
+                            </p>
+                        </div>
+                        <button @click="router.push({ name: ROUTE_NAMES.PROFILE })"
+                            class="text-xs font-medium text-yellow-700 hover:text-yellow-800 underline shrink-0 cursor-pointer">
+                            Update Profile
+                        </button>
+                    </div>
+
                     <!-- Shipping info -->
                     <div class="bg-white rounded-xl border border-gray-200 p-6">
                         <h2 class="text-base font-semibold text-gray-900 mb-4">Shipping Information</h2>
@@ -51,13 +67,12 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Phone Number <span class="text-red-500">*</span>
+                                    Phone <span class="text-red-500">*</span>
                                 </label>
-                                <input v-model="form.phoneNumber" type="text"
+                                <input v-model="form.phone" type="text" placeholder="e.g. 08123456789"
                                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    :class="{ 'border-red-400': errors.phoneNumber }" />
-                                <p v-if="errors.phoneNumber" class="text-xs text-red-500 mt-1">{{ errors.phoneNumber }}
-                                </p>
+                                    :class="{ 'border-red-400': errors.phone }" />
+                                <p v-if="errors.phone" class="text-xs text-red-500 mt-1">{{ errors.phone }}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -96,8 +111,9 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
-                                    <p class="text-xs text-gray-400">{{ item.quantity }} x {{ formatCurrency(item.price)
-                                    }}</p>
+                                    <p class="text-xs text-gray-400">
+                                        {{ item.quantity }} x {{ formatCurrency(item.price) }}
+                                    </p>
                                 </div>
                                 <p class="text-sm font-semibold text-gray-900 shrink-0">
                                     {{ formatCurrency(item.price * item.quantity) }}
@@ -128,7 +144,7 @@
                         <div class="border-t border-gray-200 pt-4 mb-5">
                             <div class="flex justify-between">
                                 <span class="font-semibold text-gray-900">Total</span>
-                                <span class="font-bold text-blue-600 text-lg">{{ formatCurrency(totalPrice) }}</span>
+                                <span class="font-bold text-gray-900 text-lg">{{ formatCurrency(totalPrice) }}</span>
                             </div>
                             <p class="text-xs text-gray-400 mt-1">
                                 {{ cartStores.length }} order{{ cartStores.length !== 1 ? 's' : '' }} will be created
@@ -144,14 +160,14 @@
                         <!-- Success -->
                         <div v-if="orderSuccess"
                             class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-600 mb-4">
-                            <i class="fas fa-check-circle mr-1"></i>
-                            Orders placed successfully!
+                            <i class="fas fa-check-circle mr-1"></i>Orders placed successfully!
                         </div>
 
-                        <button @click="handlePlaceOrder" :disabled="loading || orderSuccess"
-                            class="w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button @click="handlePlaceOrder" :disabled="loading || orderSuccess || !isProfileComplete"
+                            class="w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            :title="!isProfileComplete ? 'Please complete your profile first' : ''">
                             <span v-if="loading">
-                                <i class="fas fa-spinner fa-spin mr-1"></i>Placing Orders...
+                                <i class="fas fa-spinner animate-spin mr-1"></i>Placing Orders...
                             </span>
                             <span v-else-if="orderSuccess">
                                 <i class="fas fa-check mr-1"></i>Orders Placed!
@@ -159,7 +175,13 @@
                             <span v-else>Place Order</span>
                         </button>
 
-                        <p class="text-xs text-center text-gray-400 mt-3">
+                        <!-- Profile incomplete hint -->
+                        <p v-if="!isProfileComplete" class="text-xs text-center text-red-600 mt-2">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Complete your profile to proceed
+                        </p>
+
+                        <p v-else class="text-xs text-center text-gray-400 mt-3">
                             By placing order you agree to our terms
                         </p>
                     </div>
@@ -167,11 +189,38 @@
 
             </div>
         </div>
+
+        <!-- Profile incomplete modal -->
+        <Teleport to="body">
+            <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
+                    <div class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-user-edit text-yellow-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Profile Incomplete</h3>
+                    <p class="text-sm text-gray-500 mb-6">
+                        You need to add your <strong>phone number</strong> and <strong>address</strong>
+                        before placing an order.
+                    </p>
+                    <div class="flex gap-3">
+                        <button @click="showProfileModal = false"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            Later
+                        </button>
+                        <button @click="router.push({ name: ROUTE_NAMES.PROFILE })"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                            Update Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
     </CustomerLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import CustomerLayout from '../../layouts/CustomerLayout.vue';
@@ -187,10 +236,33 @@ const authStore = useAuthStore();
 const { cartStores, totalPrice, isEmpty } = storeToRefs(cartStore);
 const { userName, user } = storeToRefs(authStore);
 
+// Check whether the profile is complete or not
+const isProfileComplete = computed(() =>
+    !!(user.value?.phone && user.value?.address)
+);
+
+// Display a message when the page loads if the profile is incomplete
+const showProfileModal = ref(false);
+
+onMounted(() => {
+    if (!isProfileComplete.value) {
+        showProfileModal.value = true;
+    }
+
+    // Pre-fill form dari user data
+    form.value = {
+        fullName: user.value?.fullName || '',
+        email: user.value?.email || '',
+        phone: user.value?.phone || '',
+        shippingAddress: user.value?.address || '',
+        notes: '',
+    };
+});
+
 const form = ref({
-    fullName: user.value?.fullName || '',
-    email: user.value?.email || '',
-    phoneNumber: '',
+    fullName: '',
+    email: '',
+    phone: '',
     shippingAddress: '',
     notes: '',
 });
@@ -203,13 +275,17 @@ const orderSuccess = ref(false);
 const validate = () => {
     errors.value = {};
     if (!form.value.fullName.trim()) errors.value.fullName = 'Full name is required';
-    if (!form.value.shippingAddress.trim()) errors.value.shippingAddress = 'Shipping address is required';
-    if (!form.value.phoneNumber.trim()) errors.value.phoneNumber = 'Phone number is required';
     if (!form.value.email.trim()) errors.value.email = 'Email is required';
+    if (!form.value.phone.trim()) errors.value.phone = 'Phone is required';
+    if (!form.value.shippingAddress.trim()) errors.value.shippingAddress = 'Shipping address is required';
     return Object.keys(errors.value).length === 0;
 };
 
 const handlePlaceOrder = async () => {
+    if (!isProfileComplete.value) {
+        showProfileModal.value = true;
+        return;
+    }
     if (!validate()) return;
 
     loading.value = true;
@@ -217,13 +293,13 @@ const handlePlaceOrder = async () => {
 
     try {
         // TODO: call POST /api/v1/orders when backend is ready
-        // Simulate API call untuk sekarang
+        // Simulate an API call for now
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         orderSuccess.value = true;
         cartStore.clearCart();
 
-        // Redirect ke order history setelah 2 detik
+        // Redirect to order history after 2 seconds
         setTimeout(() => {
             router.push({ name: ROUTE_NAMES.ORDER_HISTORY });
         }, 2000);

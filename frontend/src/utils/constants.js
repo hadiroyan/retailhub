@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
     REGISTER_OWNER: "/api/auth/register-owner",
     ME: "/api/auth/me",
     LOGOUT: "/api/auth/logout",
+    UPDATE_PROFILE: "/api/auth/me",
   },
 
   STORES: {

@@ -32,6 +32,11 @@ export const authService = {
     const response = await api.post(API_ENDPOINTS.AUTH.LOGOUT);
     return response.data;
   },
+
+  async updateProfile(data) {
+    const response = await api.put(API_ENDPOINTS.AUTH.UPDATE_PROFILE, data);
+    return response.data;
+  },
 };
 
 export default authService;
