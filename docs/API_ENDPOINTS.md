@@ -78,4 +78,18 @@ Base URL:
 
 ---
 
+## Orders
+
+| Method | Endpoint                                      | Description                                      |
+| ------ | --------------------------------------------- | ------------------------------------------------ |
+| POST   | `/api/v1/orders`                              | Create order (CUSTOMER)                          |
+| GET    | `/api/v1/orders`                              | List customer orders (CUSTOMER)                  |
+| GET    | `/api/v1/orders/{id}`                         | Order detail (CUSTOMER)                          |
+| DELETE | `/api/v1/orders/{id}`                         | Cancel order (CUSTOMER)                          |
+| GET    | `/api/v1/stores/{storeId}/orders`             | List store orders (OWNER, ADMIN, MANAGER, STAFF) |
+| GET    | `/api/v1/stores/{storeId}/orders/{id}`        | Order detail (OWNER, ADMIN, MANAGER, STAFF)      |
+| PATCH  | `/api/v1/stores/{storeId}/orders/{id}/status` | Update order status (OWNER, ADMIN, MANAGER)      |
+
+---
+
 ### More endpoints will be added as new features are implemented.

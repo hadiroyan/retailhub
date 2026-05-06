@@ -144,7 +144,7 @@ public class OrderService {
             }
         } else {
             // Store staff — cek permission
-            checkStorePermission(requesterId, order.store.id);
+            checkStoreReadPermission(requesterId, order.store.id);
         }
 
         return orderMapper.toResponse(order);
@@ -192,7 +192,7 @@ public class OrderService {
                 storeId, requesterId, status, page, size);
 
         findStoreOrThrow(storeId);
-        checkStorePermission(requesterId, storeId);
+        checkStoreReadPermission(requesterId, storeId);
 
         List<SalesOrder> orders = orderRepository.findByStore(storeId, status, page, size);
         long total = orderRepository.countByStore(storeId, status);
@@ -310,6 +310,16 @@ public class OrderService {
         if (!hasPermission) {
             LOG.warnf("action=WRITE_PERMISSION_DENIED userId=%s storeId=%s", userId, storeId);
             throw new ForbiddenException("No permission to manage this store's orders");
+        }
+    }
+
+    private void checkStoreReadPermission(UUID userId, UUID storeId) {
+        boolean hasPermission = userRoleRepository.userHasAnyRoleInStore(
+                userId,
+                Set.of("OWNER", "ADMIN", "MANAGER", "STAFF"),
+                storeId);
+        if (!hasPermission) {
+            throw new ForbiddenException("No permission to view this store's orders");
         }
     }
 
