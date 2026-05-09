@@ -38,7 +38,7 @@ public class OrderMapper {
             itemResponse.sku = item.product.sku;
             itemResponse.name = item.product.name;
             itemResponse.imageUrl = item.product.imageUrls != null && !item.product.imageUrls.isEmpty()
-                    ? item.product.imageUrls.get(0)
+                    ? "/api/v1/files/" + item.product.imageUrls.get(0)
                     : null;
             itemResponse.quantity = item.quantity;
             itemResponse.unitPrice = item.unitPrice;
