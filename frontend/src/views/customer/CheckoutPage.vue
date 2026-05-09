@@ -226,12 +226,14 @@ import { storeToRefs } from 'pinia';
 import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/auth';
+import { useOrderStore } from '../../stores/orderStore';
 import { ROUTE_NAMES } from '../../utils/constants';
 import { formatCurrency, getImageUrl } from '../../utils/helper';
 
 const router = useRouter();
 const cartStore = useCartStore();
 const authStore = useAuthStore();
+const orderStore = useOrderStore();
 
 const { cartStores, totalPrice, isEmpty } = storeToRefs(cartStore);
 const { userName, user } = storeToRefs(authStore);
@@ -292,14 +294,23 @@ const handlePlaceOrder = async () => {
     serverError.value = null;
 
     try {
-        // TODO: call POST /api/v1/orders when backend is ready
-        // Simulate an API call for now
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Loop cartStores — create one order per store
+        for (const storeGroup of cartStores.value) {
+            await orderStore.createOrder({
+                storeId: storeGroup.storeId,
+                recipientName: form.value.fullName,
+                phone: form.value.phone,
+                shippingAddress: form.value.shippingAddress,
+                notes: form.value.notes || undefined,
+                items: storeGroup.items.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                })),
+            });
+        }
 
         orderSuccess.value = true;
         cartStore.clearCart();
-
-        // Redirect to order history after 2 seconds
         setTimeout(() => {
             router.push({ name: ROUTE_NAMES.ORDER_HISTORY });
         }, 2000);

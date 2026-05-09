@@ -122,6 +122,7 @@ const navItems = computed(() => {
       { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.STORE_CATEGORIES, params: { storeId } },
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.STORE_PRODUCTS, params: { storeId } },
       { name: 'Settings', icon: 'fa-cog', routeName: ROUTE_NAMES.STORE_SETTINGS, params: { storeId } },
+      { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.STORE_ORDERS, params: { storeId } },
     ];
   }
 
@@ -140,6 +141,7 @@ const navItems = computed(() => {
       { name: 'Employees', icon: 'fa-users', routeName: ROUTE_NAMES.EMPLOYEE_STORE_EMPLOYEES, params: { storeId } },
       { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.EMPLOYEE_STORE_CATEGORIES, params: { storeId } },
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
+      { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.EMPLOYEE_STORE_ORDERS, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
@@ -151,6 +153,7 @@ const navItems = computed(() => {
       { name: 'Employees', icon: 'fa-users', routeName: ROUTE_NAMES.EMPLOYEE_STORE_EMPLOYEES, params: { storeId } },
       { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.EMPLOYEE_STORE_CATEGORIES, params: { storeId } },
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
+      { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.EMPLOYEE_STORE_ORDERS, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
@@ -160,6 +163,7 @@ const navItems = computed(() => {
     return [
       { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.EMPLOYEE_STORE_DASHBOARD, params: { storeId } },
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
+      { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.EMPLOYEE_STORE_ORDERS, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
