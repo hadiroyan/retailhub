@@ -52,6 +52,16 @@ export const API_ENDPOINTS = {
     STORE_ORDER_BY_ID: (storeId, id) => `/api/v1/stores/${storeId}/orders/${id}`,
     STORE_ORDER_STATUS: (storeId, id) => `/api/v1/stores/${storeId}/orders/${id}/status`,
   },
+
+  SUPPLIERS: {
+    BASE: (storeId) => `/api/v1/stores/${storeId}/suppliers`,
+    BY_ID: (storeId, id) => `/api/v1/stores/${storeId}/suppliers/${id}`,
+  },
+  PURCHASE_ORDERS: {
+    BASE: (storeId) => `/api/v1/stores/${storeId}/purchase-orders`,
+    BY_ID: (storeId, id) => `/api/v1/stores/${storeId}/purchase-orders/${id}`,
+    STATUS: (storeId, id) => `/api/v1/stores/${storeId}/purchase-orders/${id}/status`,
+  },
 };
 
 // User Roles
