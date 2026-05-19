@@ -30,6 +30,8 @@ import CartPage from "../views/customer/CartPage.vue";
 import CheckoutPage from "../views/customer/CheckoutPage.vue";
 import OrderHistoryPage from "../views/customer/OrderHistoryPage.vue";
 import StoreOrderListPage from "../views/stores/StoreOrderListPage.vue";
+import SupplierListPage from "../views/stores/SupplierListPage.vue";
+import PurchaseOrderListPage from "../views/stores/PurchaseOrderListPage.vue";
 
 const routes = [
   // =========================================================================
@@ -218,6 +220,26 @@ const routes = [
       title: "Orders",
     },
   },
+  {
+    path: ROUTE_PATHS.STORE_SUPPLIER,
+    name: ROUTE_NAMES.STORE_SUPPLIER,
+    component: SupplierListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER"],
+      title: "Orders",
+    },
+  },
+  {
+    path: ROUTE_PATHS.STORE_PURCHASE_ORDER,
+    name: ROUTE_NAMES.STORE_PURCHASE_ORDER,
+    component: PurchaseOrderListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["OWNER"],
+      title: "Orders",
+    },
+  },
 
   // =========================================================================
   // Employee
@@ -266,6 +288,28 @@ const routes = [
     path: ROUTE_PATHS.EMPLOYEE_STORE_ORDERS,
     name: ROUTE_NAMES.EMPLOYEE_STORE_ORDERS,
     component: StoreOrderListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+      title: "Orders",
+    },
+  },
+
+  {
+    path: ROUTE_PATHS.EMPLOYEE_STORE_SUPPLIER,
+    name: ROUTE_NAMES.EMPLOYEE_STORE_SUPPLIER,
+    component: SupplierListPage,
+    meta: {
+      requiresAuth: true,
+      roles: ["ADMIN", "MANAGER"],
+      title: "Orders",
+    },
+  },
+
+  {
+    path: ROUTE_PATHS.EMPLOYEE_STORE_PURCHASE_ORDER,
+    name: ROUTE_NAMES.EMPLOYEE_STORE_PURCHASE_ORDER,
+    component: PurchaseOrderListPage,
     meta: {
       requiresAuth: true,
       roles: ["ADMIN", "MANAGER", "STAFF"],

@@ -123,6 +123,8 @@ const navItems = computed(() => {
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.STORE_PRODUCTS, params: { storeId } },
       { name: 'Settings', icon: 'fa-cog', routeName: ROUTE_NAMES.STORE_SETTINGS, params: { storeId } },
       { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.STORE_ORDERS, params: { storeId } },
+      { name: 'Supplier', icon: 'fa-truck-fast', routeName: ROUTE_NAMES.STORE_SUPPLIER, params: { storeId } },
+      { name: 'Purchase Order', icon: 'fa-file-invoice', routeName: ROUTE_NAMES.STORE_PURCHASE_ORDER, params: { storeId } },
     ];
   }
 
@@ -142,6 +144,8 @@ const navItems = computed(() => {
       { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.EMPLOYEE_STORE_CATEGORIES, params: { storeId } },
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
       { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.EMPLOYEE_STORE_ORDERS, params: { storeId } },
+      { name: 'Supplier', icon: 'fa-truck-fast', routeName: ROUTE_NAMES.EMPLOYEE_STORE_SUPPLIER, params: { storeId } },
+      { name: 'Purchase Order', icon: 'fa-file-invoice', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PURCHASE_ORDER, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
@@ -154,6 +158,8 @@ const navItems = computed(() => {
       { name: 'Categories', icon: 'fa-folder', routeName: ROUTE_NAMES.EMPLOYEE_STORE_CATEGORIES, params: { storeId } },
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
       { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.EMPLOYEE_STORE_ORDERS, params: { storeId } },
+      { name: 'Supplier', icon: 'fa-truck-fast', routeName: ROUTE_NAMES.EMPLOYEE_STORE_SUPPLIER, params: { storeId } },
+      { name: 'Purchase Order', icon: 'fa-file-invoice', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PURCHASE_ORDER, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }
@@ -164,6 +170,7 @@ const navItems = computed(() => {
       { name: 'Dashboard', icon: 'fa-chart-bar', routeName: ROUTE_NAMES.EMPLOYEE_STORE_DASHBOARD, params: { storeId } },
       { name: 'Products', icon: 'fa-box', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PRODUCTS, params: { storeId } },
       { name: 'Orders', icon: 'fa-shopping-cart', routeName: ROUTE_NAMES.EMPLOYEE_STORE_ORDERS, params: { storeId } },
+      { name: 'Purchase Order', icon: 'fa-file-invoice', routeName: ROUTE_NAMES.EMPLOYEE_STORE_PURCHASE_ORDER, params: { storeId } },
       { name: 'Profile', icon: 'fa-user', routeName: ROUTE_NAMES.PROFILE },
     ];
   }

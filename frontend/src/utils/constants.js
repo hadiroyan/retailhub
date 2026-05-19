@@ -115,6 +115,8 @@ export const ROUTE_NAMES = {
   EMPLOYEE_STORE_CATEGORIES: "employee-store-categories",
   EMPLOYEE_STORE_PRODUCTS: "employee-store-products",
   EMPLOYEE_STORE_ORDERS: "employee-store-orders",
+  EMPLOYEE_STORE_SUPPLIER: "employee-store-supplier",
+  EMPLOYEE_STORE_PURCHASE_ORDER: "employee-store-purchase-order",
 
   // Store context (OWNER inside a store, ADMIN/MANAGER/STAFF)
   STORE_DASHBOARD: "store-dashboard",
@@ -123,6 +125,8 @@ export const ROUTE_NAMES = {
   STORE_CATEGORIES: "store-categories",
   STORE_PRODUCTS: "store-products",
   STORE_ORDERS: "store-orders",
+  STORE_SUPPLIER: "store-supplier",
+  STORE_PURCHASE_ORDER: "store-purchase-order",
 
   // Public
   EXPLORE_STORES: "explore-stores",
@@ -164,6 +168,8 @@ export const ROUTE_PATHS = {
   EMPLOYEE_STORE_CATEGORIES: "/dashboard/store/:storeId/categories",
   EMPLOYEE_STORE_PRODUCTS: "/dashboard/store/:storeId/products",
   EMPLOYEE_STORE_ORDERS: "/dashboard/store/:storeId/orders",
+  EMPLOYEE_STORE_SUPPLIER: "/dashboard/store/:storeId/supplier",
+  EMPLOYEE_STORE_PURCHASE_ORDER: "/dashboard/store/:storeId/purchase-order",
 
   // Store context — OWNER masuk store tertentu
   STORE_DASHBOARD: "/dashboard/owner/stores/:storeId",
@@ -172,6 +178,8 @@ export const ROUTE_PATHS = {
   STORE_CATEGORIES: "/dashboard/owner/stores/:storeId/categories",
   STORE_PRODUCTS: "/dashboard/owner/stores/:storeId/products",
   STORE_ORDERS: "/dashboard/owner/stores/:storeId/orders",
+  STORE_SUPPLIER: "/dashboard/owner/stores/:storeId/supplier",
+  STORE_PURCHASE_ORDER: "/dashboard/owner/stores/:storeId/purchase-order",
 
   // Public
   EXPLORE_STORES: "/stores",
