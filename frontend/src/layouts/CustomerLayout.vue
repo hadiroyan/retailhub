@@ -47,17 +47,34 @@
                             class="hidden md:block text-sm text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors">
                             My Orders
                         </button>
-                        <button @click="router.push({ name: ROUTE_NAMES.PROFILE })"
-                            class="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors">
-                            <i class="fas fa-user-circle text-lg"></i>
-                            <span class="hidden md:inline">{{ userName }}</span>
-                        </button>
 
-                        <button @click="handleLogout"
-                            class="px-3 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span class="hidden md:inline ml-1">Logout</span>
-                        </button>
+                        <!-- Dropdown -->
+                        <div class="relative" ref="dropdownRef">
+                            <button @click="toggleDropdown"
+                                class="flex items-center gap-2 rounded-xl px-3 py-2 hover:bg-gray-100 transition cursor-pointer">
+                                <div class="hidden sm:flex flex-col items-start leading-tight">
+                                    <span class="text-sm font-medium text-gray-800">{{ userName }}</span>
+                                </div>
+                                <div class="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-user text-gray-500 text-sm"></i>
+                                </div>
+                            </button>
+
+                            <div v-if="isDropdownOpen"
+                                class="absolute right-0 mt-2 w-52 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden z-50">
+                                <button @click="router.push({ name: ROUTE_NAMES.PROFILE }); isDropdownOpen = false"
+                                    class="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                    <i class="fas fa-user-circle w-4"></i>
+                                    Profile
+                                </button>
+                                <div class="border-t border-gray-100"></div>
+                                <button @click="handleLogout"
+                                    class="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition">
+                                    <i class="fas fa-sign-out-alt w-4"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
                     </template>
                 </div>
                 <!-- Mobile menu button -->
@@ -73,12 +90,13 @@
                 class="block w-full text-left text-sm text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors">
                 Explore
             </button>
-            <button @click="navigate(ROUTE_NAMES.CART)"
-                class="block w-full text-left text-sm text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors">
-                Cart
-                <span v-if="totalItems > 0" class="ml-1 text-xs text-blue-600 font-medium">({{ totalItems }})</span>
-            </button>
+
             <template v-if="isAuthenticated">
+                <button @click="navigate(ROUTE_NAMES.CART)"
+                    class="block w-full text-left text-sm text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors">
+                    Cart
+                    <span v-if="totalItems > 0" class="ml-1 text-xs text-blue-600 font-medium">({{ totalItems }})</span>
+                </button>
                 <button @click="navigate(ROUTE_NAMES.ORDER_HISTORY)"
                     class="block w-full text-left text-sm text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors">
                     My Orders
@@ -88,9 +106,9 @@
                     Profile
                 </button>
                 <button @click="handleLogout"
-                    class="px-3 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="hidden md:inline ml-1">Logout</span>
+                    class="block w-full text-left text-sm text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt w-4 mr-2"></i>
+                    Logout
                 </button>
             </template>
             <template v-else>
@@ -99,7 +117,7 @@
                     Login
                 </button>
                 <button @click="navigate('register')"
-                    class="block w-full text-left text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors">
+                    class="block w-full text-left text-sm text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors">
                     Register
                 </button>
             </template>
@@ -116,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import AppFooter from '../components/layout/AppFooter.vue';
@@ -146,6 +164,22 @@ const handleLogout = async () => {
     await authStore.logout();
     router.push({ name: ROUTE_NAMES.LOGIN });
 };
+
+const isDropdownOpen = ref(false)
+const dropdownRef = ref(null)
+
+const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value
+}
+
+const closeDropdown = (e) => {
+    if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+        isDropdownOpen.value = false
+    }
+}
+
+onMounted(() => document.addEventListener('click', closeDropdown))
+onUnmounted(() => document.removeEventListener('click', closeDropdown))
 </script>
 
 <style scoped></style>

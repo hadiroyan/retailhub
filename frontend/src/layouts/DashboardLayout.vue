@@ -23,15 +23,34 @@
         </div>
 
         <!-- Right: user info + logout -->
-        <div class="flex items-center gap-3">
-          <div class="hidden sm:flex flex-col items-end">
-            <span class="text-md font-medium text-gray-800">{{ userName }}</span>
-          </div>
-          <button @click="handleLogout"
-            class="flex items-center gap-1 px-3 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer">
-            <i class="fas fa-sign-out-alt"></i>
-            <span class="hidden sm:inline">Logout</span>
+        <div class="relative" ref="dropdownRef">
+          <!-- User Button -->
+          <button @click="toggleDropdown"
+            class="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-gray-100 transition cursor-pointer">
+            <div class="hidden sm:flex flex-col items-start leading-tight">
+              <span class="text-sm font-medium text-gray-800">{{ userName }}</span>
+              <span class="text-xs text-gray-500">{{ userRole }}</span>
+            </div>
+            <div class="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center">
+              <i class="fas fa-user text-gray-500 text-sm"></i>
+            </div>
           </button>
+
+          <!-- Dropdown -->
+          <div v-if="isDropdownOpen"
+            class="absolute right-0 mt-2 w-52 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
+            <button @click="router.push({ name: ROUTE_NAMES.PROFILE })"
+              class="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
+              <i class="fas fa-user-circle w-4"></i>
+              Profile
+            </button>
+            <div class="border-t border-gray-100"></div>
+            <button @click="handleLogout"
+              class="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition">
+              <i class="fas fa-sign-out-alt w-4"></i>
+              Logout
+            </button>
+          </div>
         </div>
 
       </div>
@@ -82,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../stores/auth';
@@ -98,7 +117,11 @@ const { userName, userRole } = storeToRefs(authStore);
 const { activeStore } = storeToRefs(storeStore);
 
 const sidebarOpen = ref(true);
+const isDropdownOpen = ref(false)
 
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value
+}
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value;
 };
@@ -202,12 +225,24 @@ const goBackToMyStores = () => {
   router.push({ name: ROUTE_NAMES.OWNER_STORES });
 };
 
+const dropdownRef = ref(null)
+
+const closeDropdown = (e) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+    isDropdownOpen.value = false
+  }
+}
+
 onMounted(() => {
+  document.addEventListener('click', closeDropdown)
+
   // ADMIN/MANAGER/STAFF — set activeStore dari assignedStore JWT
   if (!isOwner.value && !isSuperAdmin.value && authStore.assignedStore) {
     storeStore.setActiveStore(authStore.assignedStore);
   }
-});
+})
+
+onUnmounted(() => document.removeEventListener('click', closeDropdown))
 
 </script>
 
