@@ -143,7 +143,7 @@ public class ProductService {
                 storeId, name, categoryId, page, size);
 
         findStoreOrThrow(storeId);
-        checkWritePermission(userId, storeId);
+        checkReadPermission(userId, storeId);
 
         List<Product> products = productRepository.findByStore(
                 storeId, name, categoryId, sortByPrice, page, size);
@@ -278,6 +278,16 @@ public class ProductService {
         if (!canWrite) {
             LOG.warnf("action=WRITE_PERMISSION_DENIED userId=%s storeId=%s", userId, storeId);
             throw new ForbiddenException("You don't have permission to manage this store's products");
+        }
+    }
+
+    private void checkReadPermission(UUID userId, UUID storeId) {
+        boolean canRead = userRoleRepository.userHasAnyRoleInStore(
+                userId, Set.of("OWNER", "ADMIN", "MANAGER", "STAFF"), storeId);
+
+        if (!canRead) {
+            LOG.warnf("action=READ_PERMISSION_DENIED userId=%s storeId=%s", userId, storeId);
+            throw new ForbiddenException("You don't have permission to view this store's products");
         }
     }
 
