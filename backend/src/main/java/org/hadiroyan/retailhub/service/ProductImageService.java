@@ -54,7 +54,7 @@ public class ProductImageService {
                 userId, storeId, productId);
 
         validateStoreExists(storeId);
-        checkWritePermission(userId, storeId);
+        checkImagePermission(userId, storeId);
 
         Product product = findProductOrThrow(productId);
         validateSameStoreProduct(product, storeId);
@@ -94,7 +94,7 @@ public class ProductImageService {
                 userId, storeId, productId, filename);
 
         validateStoreExists(storeId);
-        checkWritePermission(userId, storeId);
+        checkImagePermission(userId, storeId);
 
         Product product = findProductOrThrow(productId);
         validateSameStoreProduct(product, storeId);
@@ -153,7 +153,7 @@ public class ProductImageService {
                 });
     }
 
-    private void checkWritePermission(UUID userId, UUID storeId) {
+    private void checkImagePermission(UUID userId, UUID storeId) {
         boolean canWrite = userRoleRepository.userHasAnyRoleInStore(
                 userId, Set.of("OWNER", "ADMIN", "MANAGER", "STAFF"), storeId);
         if (!canWrite) {
