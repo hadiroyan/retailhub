@@ -80,6 +80,28 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
+
+        <!-- Mailer -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-mailer</artifactId>
+        </dependency>
+
+        <!-- Mailpit Dev Service -->
+        <dependency>
+            <groupId>io.quarkiverse.mailpit</groupId>
+            <artifactId>quarkus-mailpit</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!-- Mailpit Testing -->
+        <dependency>
+            <groupId>io.quarkiverse.mailpit</groupId>
+            <artifactId>quarkus-mailpit-testing</artifactId>
+            <version>2.0.1</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit</artifactId>
