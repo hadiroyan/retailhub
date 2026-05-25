@@ -5,10 +5,16 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.UUID;
+
 import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterOwnerRequest;
+import org.hadiroyan.retailhub.dto.request.VerifyOtpRequest;
+import org.hadiroyan.retailhub.model.User;
+import org.hadiroyan.retailhub.repository.EmailVerificationTokenRepository;
 import org.hadiroyan.retailhub.repository.UserRepository;
+import org.hadiroyan.retailhub.service.AuthService;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -22,6 +28,12 @@ class AuthResourceTest {
 
     @Inject
     UserRepository userRepository;
+
+    @Inject
+    AuthService authService;
+
+    @Inject
+    EmailVerificationTokenRepository tokenRepository;
 
     private static final String BASE_PATH = "/api/auth";
 
@@ -336,5 +348,142 @@ class AuthResourceTest {
 
         userRepository.findByEmail(testEmail)
                 .ifPresent(user -> userRepository.delete(user));
+    }
+
+    // verify-email
+    @Test
+    void should_verify_email_successfully_with_valid_otp() {
+        // Step 1: login dulu untuk dapat JWT
+        String jwtCookie = loginAndGetCookie(CUSTOMER_EMAIL, TEST_PASSWORD);
+
+        // Step 2: generate OTP
+        User user = userRepository.findByEmail(CUSTOMER_EMAIL).orElseThrow();
+        authService.generateAndSendOtp(user);
+
+        // Step 3: ambil OTP dari DB
+        String otp = tokenRepository
+                .findLatestActiveByUserId(user.id)
+                .orElseThrow().otp;
+
+        // Step 4: hit endpoint
+        VerifyOtpRequest request = new VerifyOtpRequest();
+        request.otp = otp;
+
+        given()
+                .cookie("jwt", jwtCookie)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH + "/verify-email")
+                .then()
+                .statusCode(200)
+                .body("status", equalTo(200))
+                .body("message", equalTo("Email verified successfully"));
+
+        // cleanup
+        resetVerifiedState(user.id, CUSTOMER_EMAIL);
+    }
+
+    @Test
+    void should_fail_verify_email_with_wrong_otp() {
+        String jwtCookie = loginAndGetCookie(CUSTOMER_EMAIL, TEST_PASSWORD);
+
+        User user = userRepository.findByEmail(CUSTOMER_EMAIL).orElseThrow();
+        authService.generateAndSendOtp(user);
+
+        VerifyOtpRequest request = new VerifyOtpRequest();
+        request.otp = "000000"; // salah
+
+        given()
+                .cookie("jwt", jwtCookie)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH + "/verify-email")
+                .then()
+                .statusCode(400)
+                .body("status", equalTo(400));
+
+        // cleanup
+        resetVerifiedState(user.id, CUSTOMER_EMAIL);
+    }
+
+    @Test
+    void should_fail_verify_email_without_jwt() {
+        VerifyOtpRequest request = new VerifyOtpRequest();
+        request.otp = "123456";
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH + "/verify-email")
+                .then()
+                .statusCode(401);
+    }
+
+    // resend-otp
+    @Test
+    void should_resend_otp_successfully() {
+        String jwtCookie = loginAndGetCookie(CUSTOMER_EMAIL, TEST_PASSWORD);
+
+        given()
+                .cookie("jwt", jwtCookie)
+                .when()
+                .post(BASE_PATH + "/resend-otp")
+                .then()
+                .statusCode(200)
+                .body("status", equalTo(200))
+                .body("message", equalTo("OTP sent successfully"));
+
+        // cleanup
+        User user = userRepository.findByEmail(CUSTOMER_EMAIL).orElseThrow();
+        resetVerifiedState(user.id, CUSTOMER_EMAIL);
+    }
+
+    @Test
+    void should_fail_resend_otp_without_jwt() {
+        given()
+                .when()
+                .post(BASE_PATH + "/resend-otp")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    void should_fail_resend_otp_when_already_verified() {
+        // OWNER sudah email_verified = true di seed data
+        String jwtCookie = loginAndGetCookie(OWNER_EMAIL, TEST_PASSWORD);
+
+        given()
+                .cookie("jwt", jwtCookie)
+                .when()
+                .post(BASE_PATH + "/resend-otp")
+                .then()
+                .statusCode(400)
+                .body("status", equalTo(400));
+    }
+
+    private String loginAndGetCookie(String email, String password) {
+        LoginRequest request = new LoginRequest();
+        request.email = email;
+        request.password = password;
+
+        return given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH + "/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .cookie("jwt");
+    }
+
+    @Transactional
+    public void resetVerifiedState(UUID userId, String email) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+        user.emailVerified = false;
+        tokenRepository.delete("user.id", userId);
     }
 }

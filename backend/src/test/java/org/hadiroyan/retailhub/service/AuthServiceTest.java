@@ -61,7 +61,7 @@ public class AuthServiceTest {
     PasswordService passwordService;
 
     @Inject
-    EmailVerificationTokenRepository tokenRepository;
+    EmailVerificationTokenRepository emailVerificationTokenRepository;
 
     @Inject
     EntityManager entityManager;
@@ -113,7 +113,6 @@ public class AuthServiceTest {
     }
 
     @Test
-    @Transactional
     void should_success_register_owner_with_valid_data() {
         String NEW_OWNER_EMAIL = "newowner@test.com";
         String NEW_OWNER_PASS = "newownerpass";
@@ -143,7 +142,7 @@ public class AuthServiceTest {
 
         assertTrue(savedUser.get().userRoles.stream().anyMatch(ur -> ur.role.name.equals("OWNER")));
 
-        userRepository.delete(savedUser.get());
+        cleanupUser(NEW_OWNER_EMAIL);
     }
 
     @Test
@@ -185,7 +184,6 @@ public class AuthServiceTest {
     }
 
     @Test
-    @Transactional
     void should_success_register_customer_with_valid_data() {
         String NEW_CUSTOMER_EMAIL = "newcustomer@test.com";
         String NEW_CUSTOMER_PASS = "newcustomerpass";
@@ -215,11 +213,10 @@ public class AuthServiceTest {
 
         assertTrue(savedUser.get().userRoles.stream().anyMatch(ur -> ur.role.name.equals("CUSTOMER")));
 
-        userRepository.delete(savedUser.get());
+        cleanupUser(NEW_CUSTOMER_EMAIL);
     }
 
     @Test
-    @Transactional
     void should_trim_from_fullname() {
 
         RegisterOwnerRequest request = new RegisterOwnerRequest();
@@ -231,9 +228,7 @@ public class AuthServiceTest {
 
         assertEquals("My User Test", response.data.fullName); // Trimmed
 
-        userRepository
-                .findByEmail("trimtest@test.com")
-                .ifPresent(user -> userRepository.delete(user));
+        cleanupUser("trimtest@test.com");
     }
 
     @Test
@@ -275,7 +270,7 @@ public class AuthServiceTest {
         // generate OTP manually because the registration flow does not yet include OTP
         authService.generateAndSendOtp(user);
 
-        EmailVerificationToken token = tokenRepository
+        EmailVerificationToken token = emailVerificationTokenRepository
                 .findLatestActiveByUserId(user.id)
                 .orElseThrow();
 
@@ -311,7 +306,7 @@ public class AuthServiceTest {
         authService.generateAndSendOtp(
                 userRepository.findByEmail(email).orElseThrow());
 
-        EmailVerificationToken token = tokenRepository
+        EmailVerificationToken token = emailVerificationTokenRepository
                 .findLatestActiveByUserId(CUSTOMER_ID)
                 .orElseThrow();
 
@@ -337,13 +332,13 @@ public class AuthServiceTest {
 
         authService.generateAndSendOtp(user);
 
-        String firstOtp = tokenRepository
+        String firstOtp = emailVerificationTokenRepository
                 .findLatestActiveByUserId(user.id)
                 .orElseThrow().otp;
 
         authService.resendOtp(email);
 
-        String newOtp = tokenRepository
+        String newOtp = emailVerificationTokenRepository
                 .findLatestActiveByUserId(user.id)
                 .orElseThrow().otp;
 
@@ -393,6 +388,14 @@ public class AuthServiceTest {
         User user = userRepository.findByEmail(email).orElseThrow();
         user.emailVerified = false;
         // Delete all tokens
-        tokenRepository.delete("user.id", userId);
+        emailVerificationTokenRepository.delete("user.id", userId);
+    }
+
+    @Transactional
+    public void cleanupUser(String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            emailVerificationTokenRepository.delete("user.id", user.id);
+            userRepository.delete(user);
+        });
     }
 }
