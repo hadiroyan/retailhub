@@ -1,10 +1,13 @@
 package org.hadiroyan.retailhub.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hadiroyan.retailhub.dto.request.ChangePasswordRequest;
 import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
@@ -19,10 +22,12 @@ import org.hadiroyan.retailhub.exception.EmailAlreadyExistsException;
 import org.hadiroyan.retailhub.exception.NotFoundException;
 import org.hadiroyan.retailhub.exception.RoleNotFoundException;
 import org.hadiroyan.retailhub.exception.UnauthorizedException;
+import org.hadiroyan.retailhub.model.EmailVerificationToken;
 import org.hadiroyan.retailhub.model.Role;
 import org.hadiroyan.retailhub.model.Store;
 import org.hadiroyan.retailhub.model.User;
 import org.hadiroyan.retailhub.model.UserRole;
+import org.hadiroyan.retailhub.repository.EmailVerificationTokenRepository;
 import org.hadiroyan.retailhub.repository.RoleRepository;
 import org.hadiroyan.retailhub.repository.StoreRepository;
 import org.hadiroyan.retailhub.repository.UserRepository;
@@ -54,6 +59,18 @@ public class AuthService {
 
     @Inject
     StoreRepository storeRepository;
+
+    @Inject
+    EmailVerificationTokenRepository tokenRepository;
+
+    @Inject
+    EmailService emailService;
+
+    @ConfigProperty(name = "app.otp.expiry-minutes", defaultValue = "10")
+    int otpExpiryMinutes;
+
+    @ConfigProperty(name = "app.otp.max-resend-per-hour", defaultValue = "5")
+    int maxResendPerHour;
 
     private static Logger LOG = Logger.getLogger(AuthService.class);
 
@@ -96,14 +113,11 @@ public class AuthService {
         String email = ValidationUtils.normalizeEmail(request.email);
         LOG.debugf("action=REGISTER_OWNER_START email=%s", email);
 
-        ApiResponse<UserResponse> response = registerUser(
-                request.email,
-                request.password,
-                request.fullName,
-                "OWNER");
+        User user = registerUser(request.email, request.password, request.fullName, "OWNER");
+        generateAndSendOtp(user);
 
         LOG.infof("action=REGISTER_OWNER_SUCCESS email=%s", email);
-        return response;
+        return ApiResponse.created("Account created successfully", UserResponse.fromUser(user));
     }
 
     @Transactional
@@ -111,17 +125,14 @@ public class AuthService {
         String email = ValidationUtils.normalizeEmail(request.email);
         LOG.debugf("action=REGISTER_CUSTOMER_START email=%s", email);
 
-        ApiResponse<UserResponse> response = registerUser(
-                request.email,
-                request.password,
-                request.fullName,
-                "CUSTOMER");
+        User user = registerUser(request.email, request.password, request.fullName, "CUSTOMER");
+        generateAndSendOtp(user);
 
         LOG.infof("action=REGISTER_CUSTOMER_SUCCESS email=%s", email);
-        return response;
+        return ApiResponse.created("Account created successfully", UserResponse.fromUser(user));
     }
 
-    private ApiResponse<UserResponse> registerUser(
+    private User registerUser(
             String email,
             String password,
             String fullname,
@@ -157,9 +168,7 @@ public class AuthService {
         LOG.infof("action=REGISTER_SUCCESS userId=%s email=%s role=%s",
                 user.id, email, roleName);
 
-        return ApiResponse.created(
-                "Account created successfully",
-                UserResponse.fromUser(user));
+        return user; 
     }
 
     public UserResponse getCurrentUser(String email) {
@@ -296,5 +305,82 @@ public class AuthService {
                     LOG.warnf("action=USER_ROLE_NOT_FOUND email=%s", user.email);
                     return new NotFoundException("User not found");
                 });
+    }
+
+    private String generateOtp() {
+        int otp = new java.util.Random().nextInt(900000) + 100000;
+        return String.valueOf(otp);
+    }
+
+    @Transactional
+    public void generateAndSendOtp(User user) {
+        String otp = generateOtp();
+
+        EmailVerificationToken token = new EmailVerificationToken();
+        token.user = user;
+        token.otp = otp;
+        token.expiresAt = LocalDateTime.now().plusMinutes(otpExpiryMinutes);
+        token.persist();
+
+        emailService.sendVerificationEmail(user.email, user.fullName, otp);
+
+        LOG.infof("action=OTP_GENERATED email=%s", user.email);
+    }
+
+    @Transactional
+    public void verifyOtp(String email, String otp) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=USER_NOT_FOUND email=%s", email);
+                    return new NotFoundException("User not found");
+                });
+
+        if (user.emailVerified) {
+            LOG.warnf("action=VERIFY_OTP_ALREADY_VERIFIED email=%s", email);
+            throw new BadRequestException("Email already verified");
+        }
+
+        EmailVerificationToken token = tokenRepository
+                .findLatestActiveByUserId(user.id)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=VERIFY_OTP_NO_ACTIVE_TOKEN email=%s", email);
+                    return new BadRequestException("OTP expired or not found, please request a new one");
+                });
+
+        if (!token.otp.equals(otp)) {
+            LOG.warnf("action=VERIFY_OTP_INVALID email=%s", email);
+            throw new BadRequestException("Invalid OTP");
+        }
+
+        token.used = true;
+        user.emailVerified = true;
+
+        LOG.infof("action=VERIFY_OTP_SUCCESS email=%s", email);
+    }
+
+    @Transactional
+    public void resendOtp(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    LOG.warnf("action=USER_NOT_FOUND email=%s", email);
+                    return new NotFoundException("User not found");
+                });
+
+        if (user.emailVerified) {
+            LOG.warnf("action=RESEND_OTP_ALREADY_VERIFIED email=%s", email);
+            throw new BadRequestException("Email already verified");
+        }
+
+        long recentCount = tokenRepository.countRecentByUserId(user.id, LocalDateTime.now().minusHours(1));
+
+        if (recentCount >= maxResendPerHour) {
+            LOG.warnf("action=RESEND_OTP_RATE_LIMITED email=%s count=%d", email, recentCount);
+            throw new BadRequestException("Too many OTP requests, please try again in an hour");
+        }
+
+        tokenRepository.invalidateAllByUserId(user.id);
+        generateAndSendOtp(user);
+
+        LOG.infof("action=RESEND_OTP_SUCCESS email=%s", email);
     }
 }
