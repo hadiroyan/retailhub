@@ -6,11 +6,13 @@ import org.hadiroyan.retailhub.dto.request.LoginRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterCustomerRequest;
 import org.hadiroyan.retailhub.dto.request.RegisterOwnerRequest;
 import org.hadiroyan.retailhub.dto.request.UpdateProfileRequest;
+import org.hadiroyan.retailhub.dto.request.VerifyOtpRequest;
 import org.hadiroyan.retailhub.dto.response.ApiResponse;
 import org.hadiroyan.retailhub.dto.response.AuthResponse;
 import org.hadiroyan.retailhub.dto.response.UserResponse;
 import org.hadiroyan.retailhub.service.AuthService;
 import org.hadiroyan.retailhub.utils.CookieUtil;
+import org.hadiroyan.retailhub.utils.CurrentUserUtil;
 import org.jboss.logging.Logger;
 
 import jakarta.annotation.security.PermitAll;
@@ -41,6 +43,9 @@ public class AuthResource {
 
     @Inject
     JsonWebToken jwt;
+
+    @Inject
+    CurrentUserUtil currentUser;
 
     @POST
     @Path("/login")
@@ -187,5 +192,33 @@ public class AuthResource {
         return Response.ok(ApiResponse.success("Logout successful"))
                 .cookie(logoutCookie)
                 .build();
+    }
+
+    @POST
+    @Path("/verify-email")
+    @RolesAllowed({ "OWNER", "CUSTOMER", "ADMIN", "MANAGER", "STAFF" })
+    public Response verifyEmail(@Valid VerifyOtpRequest request) {
+        String email = currentUser.getEmail();
+        LOG.debugf("action=VERIFY_EMAIL_REQUEST email=%s", email);
+
+        authService.verifyOtp(email, request.otp);
+
+        LOG.infof("action=VERIFY_EMAIL_RESPONSE email=%s", email);
+
+        return Response.ok(ApiResponse.success("Email verified successfully")).build();
+    }
+
+    @POST
+    @Path("/resend-otp")
+    @RolesAllowed({ "OWNER", "CUSTOMER", "ADMIN", "MANAGER", "STAFF" })
+    public Response resendOtp() {
+        String email = currentUser.getEmail();
+        LOG.debugf("action=RESEND_OTP_REQUEST email=%s", email);
+
+        authService.resendOtp(email);
+
+        LOG.infof("action=RESEND_OTP_RESPONSE email=%s", email);
+
+        return Response.ok(ApiResponse.success("OTP sent successfully")).build();
     }
 }

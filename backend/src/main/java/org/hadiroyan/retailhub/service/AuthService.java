@@ -37,6 +37,7 @@ import org.jboss.logging.Logger;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 @ApplicationScoped
@@ -65,6 +66,9 @@ public class AuthService {
 
     @Inject
     EmailService emailService;
+
+    @Inject
+    EntityManager entityManager;
 
     @ConfigProperty(name = "app.otp.expiry-minutes", defaultValue = "10")
     int otpExpiryMinutes;
@@ -154,6 +158,7 @@ public class AuthService {
                 passwordService.hash(password),
                 fullname);
         userRepository.persist(user);
+        entityManager.flush();
 
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> {
@@ -168,7 +173,7 @@ public class AuthService {
         LOG.infof("action=REGISTER_SUCCESS userId=%s email=%s role=%s",
                 user.id, email, roleName);
 
-        return user; 
+        return user;
     }
 
     public UserResponse getCurrentUser(String email) {
