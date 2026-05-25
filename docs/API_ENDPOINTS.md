@@ -17,6 +17,8 @@ Base URL:
 | GET    | `/api/auth/me`                | Get currently authenticated user |
 | POST   | `/api/auth/logout`            | Logout current user              |
 | PUT    | `/api/auth/me`                | Update current user profile      |
+| POST   | `/api/auth/verify-email`      | Verify email with OTP            |
+| POST   | `/api/auth/resend-otp`        | Resend email verification OTP    |
 
 ---
 
