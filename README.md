@@ -22,7 +22,7 @@ It provides:
 - Store owner and customer management
 - Database migrations with versioning
 
-This project is built as a modern RESTful API using Java and Quarkus.
+This project is built as a modern RESTful API using Java and Quarkus, and the frontend is developed using Vue.js and Vite.
 
 ---
 
@@ -38,12 +38,14 @@ This project is built as a modern RESTful API using Java and Quarkus.
 - Flyway
 - Maven
 
-**Frontend (Planned)**
+**Frontend**
 
 - Vue.js 3
 - Vite
 - Pinia
+- Vue Router
 - Tailwind CSS
+- Axios
 
 For detailed information, see:
 [Tech Stack Documentation](docs/TECH_STACK.md)
@@ -53,6 +55,7 @@ For detailed information, see:
 Architecture Summary
 
 - REST API architecture
+- Vue.js Single Page Application (SPA
 - Multi-tenant store isolation (store-based data separation)
 - JWT authentication (RSA-256)
 - Role and privilege-based authorization
@@ -68,9 +71,13 @@ Make sure you have installed:
 
 - Java 21+
 - PostgreSQL
-- Maven 3.9+
+- Maven
+- Node.js 20+
+- npm
 
 ---
+
+## Backend
 
 ### **1. Clone the Repository**
 
@@ -126,11 +133,24 @@ Backend runs at:
 Swagger UI (API Documentation):  
 **http://localhost:8080/swagger-ui**
 
-### **6. Start Frontend** _(Coming Soon)_
+## Frontend
+
+### 1. Configure Environment
 
 ```bash
 cd frontend
+cp .env.example .env
+```
+
+### 2. Install Dependencies
+
+```bash
 npm install
+```
+
+### 3. Run Development Server
+
+```bash
 npm run dev
 ```
 
@@ -140,6 +160,8 @@ Frontend runs at:
 ---
 
 ## Documentation
+
+Additional documentation is available in the `docs` directory:
 
 - [Project Structure](docs/PROJECT_STRUCTURE.md)
 - [Tech Stack](docs/TECH_STACK.md)

@@ -28,10 +28,6 @@ This document describes the current development status of RetailHub.
 - HttpOnly cookies (XSS protection)
 - SameSite=Strict (basic CSRF protection)
 
----
-
-## In Progress
-
 ### Store Management
 
 - Create, update, delete stores
@@ -52,4 +48,3 @@ This document describes the current development status of RetailHub.
 - Sales & Orders
 - Suppliers & Purchases
 - Reports & Analytics
-- Vue.js Frontend

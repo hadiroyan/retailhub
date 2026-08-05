@@ -16,9 +16,16 @@ This project uses modern and production-ready technologies.
 | BCrypt                  | Password hashing                      |
 | Maven                   | Build and dependency management       |
 
+## Development Tools
+
+| Technology | Description                          |
+| ---------- | ------------------------------------ |
+| Docker     | Runs Mailpit for local email testing |
+| Mailpit    | Email testing and SMTP capture       |
+
 ---
 
-## Frontend (Planned)
+## Frontend
 
 | Technology   | Description                 |
 | ------------ | --------------------------- |

@@ -14,7 +14,7 @@ retailhub/
 │   ├── pom.xml            # Maven dependencies
 │   └── README.md          # Backend documentation
 │
-├── frontend/             # Vue.js frontend (planned)
+├── frontend/             # Vue.js frontend application
 │   ├── src/
 │   ├── package.json
 │   └── README.md
@@ -39,5 +39,7 @@ retailhub/
 
 ## Frontend Overview
 
-- Planned Vue.js application
-- Will consume backend REST API
+- Built with Vue.js 3 and Vite
+- Consumes the Quarkus REST API
+- Uses Pinia for state management
+- Uses Vue Router for client-side routing
