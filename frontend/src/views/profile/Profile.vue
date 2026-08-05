@@ -8,6 +8,23 @@
                 <p class="text-sm text-gray-500 mt-0.5">Your account information</p>
             </div>
 
+            <!-- Email Verification Banner -->
+            <div v-if="!user?.emailVerified" class="w-full max-w-7xl mx-auto px-8 mb-4">
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                        <div>
+                            <p class="text-sm font-medium text-yellow-800">Email not verified</p>
+                            <p class="text-xs text-yellow-600">Please verify your email to secure your account.</p>
+                        </div>
+                    </div>
+                    <button @click="scrollToVerify"
+                        class="text-xs font-medium text-yellow-700 underline hover:text-yellow-900 whitespace-nowrap ml-4">
+                        Verify now
+                    </button>
+                </div>
+            </div>
+
             <div class="max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6 px-8">
 
                 <!-- Account Info card -->
@@ -54,14 +71,62 @@
                         </div>
 
                         <!-- Email Verified -->
-                        <div>
+                        <div ref="verifySection">
                             <p class="text-gray-400 mb-1">Email Verified</p>
+
+                            <!-- verified -->
                             <span v-if="user?.emailVerified" class="text-green-600 text-sm">
                                 <i class="fas fa-check-circle mr-1"></i>Verified
                             </span>
-                            <span v-else class="text-gray-400 text-sm">
-                                <i class="fas fa-times-circle mr-1"></i>Not verified
-                            </span>
+
+                            <!-- unverified -->
+                            <div v-else class="space-y-3">
+                                <span class="text-yellow-600 text-sm">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>Not verified
+                                </span>
+
+                                <!-- “Send OTP” button (before the form appears) -->
+                                <div v-if="!showOtpForm" class="mt-1">
+                                    <button @click="handleSendOtp" :disabled="otpLoading"
+                                        class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50">
+                                        <span v-if="otpLoading">
+                                            <i class="fas fa-spinner animate-spin mr-1"></i>Sending...
+                                        </span>
+                                        <span v-else>Send OTP</span>
+                                    </button>
+                                </div>
+
+                                <!-- OTP input form (after the OTP is sent) -->
+                                <div v-if="showOtpForm" class="space-y-2 mt-1">
+                                    <p class="text-xs text-gray-500">
+                                        OTP sent to <span class="font-medium">{{ userEmail }}</span>.
+                                        Valid for 10 minutes.
+                                    </p>
+                                    <div class="flex gap-2 flex-wrap">
+                                        <input v-model="otpInput" type="text" maxlength="6"
+                                            placeholder="Enter 6-digit OTP"
+                                            class="w-40 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                        <button @click="handleVerifyOtp" :disabled="otpLoading || otpInput.length !== 6"
+                                            class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50">
+                                            <span v-if="otpLoading">
+                                                <i class="fas fa-spinner animate-spin mr-1"></i>
+                                            </span>
+                                            <span v-else>Verify</span>
+                                        </button>
+                                        <button @click="handleSendOtp" :disabled="otpLoading"
+                                            class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50">
+                                            Resend
+                                        </button>
+                                    </div>
+
+                                    <div v-if="otpError" class="text-xs text-red-500">
+                                        <i class="fas fa-times-circle mr-1"></i>{{ otpError }}
+                                    </div>
+                                    <div v-if="otpSuccess" class="text-xs text-green-600">
+                                        <i class="fas fa-check-circle mr-1"></i>{{ otpSuccess }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Error / Success -->
@@ -201,7 +266,6 @@ import DashboardLayout from '../../layouts/DashboardLayout.vue';
 import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useAuthStore } from '../../stores/auth';
 import { ROLES, ROUTE_NAMES } from '../../utils/constants';
-import authService from '../../services/authService';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -260,6 +324,53 @@ const handleUpdateProfile = async () => {
         profileError.value = err.response?.data?.message || 'Failed to update profile';
     } finally {
         profileLoading.value = false;
+    }
+};
+
+// =========================================================================
+// Email verification
+// =========================================================================
+const verifySection = ref(null);
+const showOtpForm = ref(false);
+const otpInput = ref('');
+const otpLoading = ref(false);
+const otpError = ref(null);
+const otpSuccess = ref(null);
+
+const scrollToVerify = () => {
+    verifySection.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+const handleSendOtp = async () => {
+    otpError.value = null;
+    otpSuccess.value = null;
+    otpLoading.value = true;
+    try {
+        await authStore.resendOtp();
+        showOtpForm.value = true;
+        otpSuccess.value = 'OTP sent! Check your email.';
+    } catch (err) {
+        console.log(err);
+        otpError.value = err.response?.data?.message || 'Failed to send OTP';
+    } finally {
+        otpLoading.value = false;
+    }
+};
+
+const handleVerifyOtp = async () => {
+    otpError.value = null;
+    otpSuccess.value = null;
+    otpLoading.value = true;
+    try {
+        await authStore.verifyEmail(otpInput.value);
+        otpSuccess.value = 'Email verified successfully!';
+        showOtpForm.value = false;
+        otpInput.value = '';
+    } catch (err) {
+        console.log(err);
+        otpError.value = err.response?.data?.message || 'Invalid or expired OTP';
+    } finally {
+        otpLoading.value = false;
     }
 };
 

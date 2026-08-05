@@ -163,6 +163,36 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function verifyEmail(otp) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await authService.verifyEmail(otp);
+      // refresh user agar emailVerified terupdate di state
+      await fetchCurrentUser();
+      return response;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to verify email';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function resendOtp() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await authService.resendOtp();
+      return response;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to resend OTP';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function logout() {
     loading.value = true;
     error.value = null;
@@ -218,5 +248,7 @@ export const useAuthStore = defineStore("auth", () => {
     resetAuth,
     updateProfile,
     changePassword,
+    verifyEmail,
+    resendOtp,
   };
 });

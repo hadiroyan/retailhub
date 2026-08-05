@@ -10,6 +10,8 @@ export const API_ENDPOINTS = {
     LOGOUT: "/api/auth/logout",
     UPDATE_PROFILE: "/api/auth/me",
     CHANGE_PASSWORD: "/api/auth/change-password",
+    VERIFY_EMAIL: '/api/auth/verify-email',
+    RESEND_OTP: '/api/auth/resend-otp',
   },
 
   STORES: {
