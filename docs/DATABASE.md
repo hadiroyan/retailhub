@@ -4,34 +4,45 @@ This document describes the database structure and migration strategy used in Re
 
 ---
 
-## 🗄 Database Overview
+## Database Overview
 
 RetailHub uses PostgreSQL as the primary database.
 
-The schema is divided into two main areas:
+The schema is divided into three main areas:
 
 ### 1. Authentication & Authorization
 
-| Table        | Description                                         |
-| ------------ | --------------------------------------------------- |
-| `users`      | Application user accounts                           |
-| `roles`      | System roles (e.g., OWNER, ADMIN, CUSTOMER)         |
-| `privileges` | Fine-grained permissions                            |
-| `user_roles` | User-role assignments (supports multi-store access) |
+| Table                       | Description                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `users`                     | Application user accounts                                                      |
+| `roles`                     | System roles (`SUPER_ADMIN`, `OWNER`, `ADMIN`, `MANAGER`, `STAFF`, `CUSTOMER`) |
+| `privileges`                | Fine-grained permissions                                                       |
+| `role_privileges`           | Role-privilege assignments                                                     |
+| `user_roles`                | User-role assignments (supports multi-store access)                            |
+| `email_verification_tokens` | OTP tokens for email verification (6-digit, 10-min expiry)                     |
 
 ---
 
 ### 2. Business Domain
 
-| Table             | Description           |
-| ----------------- | --------------------- |
-| `stores`          | Store locations       |
-| `categories`      | Product categories    |
-| `products`        | Product catalog       |
-| `suppliers`       | Supplier data         |
-| `purchase_orders` | Purchase transactions |
-| `customers`       | Customer records      |
-| `sales_orders`    | Sales transactions    |
+| Table                  | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `stores`               | Store locations                               |
+| `categories`           | Product categories                            |
+| `products`             | Product catalog (includes `image_urls` JSONB) |
+| `suppliers`            | Supplier data                                 |
+| `purchase_orders`      | Purchase order transactions                   |
+| `purchase_order_items` | Line items per purchase order                 |
+| `sales_orders`         | Sales order transactions                      |
+| `sales_order_items`    | Line items per sales order                    |
+
+---
+
+### 3. Legacy / Unused
+
+| Table       | Status                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `customers` | Created in `V4` migration, store-scoped customer records. **Not used** by the current application flow — customer identity is now handled via `users` + `user_roles` (role `CUSTOMER`). Table still exists in the database but is empty and not referenced by the codebase. Kept for schema history; candidate for removal in a future migration. |
 
 ---
 
@@ -44,12 +55,16 @@ They run automatically when the application starts.
 
 ### Migration Files
 
-```
-V1__create_auth_tables.sql      - Authentication schema
-V2__seed_auth_data.sql          - Roles & privileges seed
-V3__seed_test_data.sql          - Test users (dev/test only)
-V4__create_retailhub_tables.sql - Business tables
-```
+| Version | File                                                         | Description                                                                                               |
+| ------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| V1      | `create_auth_tables.sql`                                     | Authentication schema                                                                                     |
+| V2      | `seed_auth_data.sql`                                         | Roles & privileges seed                                                                                   |
+| V3      | `seed_test_data.sql`                                         | Test users (dev/test only)                                                                                |
+| V4      | `create_retailhub_table.sql`                                 | Business tables (stores, categories, products, sales_orders, purchase_orders, suppliers, customers, etc.) |
+| V5      | `alter_users_products_table.sql`                             | Add phone/address to users; imageUrls JSONB to products                                                   |
+| V6      | `alter_sales_orders_tables.sql`                              | Add phone/recipient_name to sales_orders                                                                  |
+| V7      | `remove_order_date_and_make_exptected_delivery_nullable.sql` | Remove order_date from purchase_orders (redundant with created_at)                                        |
+| V8      | `email_verification_tokens.sql`                              | Add email_verification_tokens table                                                                       |
 
 Each migration is incremental and should never be modified after being committed.
 

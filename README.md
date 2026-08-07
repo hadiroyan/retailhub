@@ -26,6 +26,31 @@ This project is built as a modern RESTful API using Java and Quarkus, and the fr
 
 ---
 
+## Features
+
+- **Multi-store management** — owners can create and manage multiple stores under one account
+- **Role-based access control** — `SUPER_ADMIN`, `OWNER`, `ADMIN`, `MANAGER`, `STAFF`, `CUSTOMER` with granular permissions per role
+- **Product catalog** — categories, products, multi-image upload (up to 5 images per product)
+- **Sales order flow** — customer checkout, order tracking, status management (`PENDING → PROCESSING → SHIPPED → DELIVERED`)
+- **Purchase order flow** — supplier management and PO tracking (`PENDING → CONFIRMED → RECEIVED`)
+- **Employee management** — store owners/admins can add and manage staff per store
+- **Email verification** — OTP-based email verification with rate limiting
+- **JWT cookie authentication** — secure httpOnly cookie-based auth with RSA-256 signing
+
+---
+
+## Screenshots
+
+> _Screenshots coming soon._
+
+---
+
+## Live Demo
+
+> _Not deployed yet. Link will be added here once available._
+
+---
+
 ## Tech Stack
 
 **Backend**
@@ -52,10 +77,10 @@ For detailed information, see:
 
 ---
 
-Architecture Summary
+## Architecture Summary
 
 - REST API architecture
-- Vue.js Single Page Application (SPA
+- Vue.js Single Page Application (SPA)
 - Multi-tenant store isolation (store-based data separation)
 - JWT authentication (RSA-256)
 - Role and privilege-based authorization
@@ -133,6 +158,8 @@ Backend runs at:
 Swagger UI (API Documentation):  
 **http://localhost:8080/swagger-ui**
 
+---
+
 ## Frontend
 
 ### 1. Configure Environment
@@ -177,7 +204,6 @@ Additional documentation is available in the `docs` directory:
 
 ## Contributing
 
-If you find a bug or have suggestions for improvement, please open an issue in this repository.  
-This project is actively developed as part of my portfolio.
+This project is actively developed as part of my portfolio. Bug reports, suggestions, and feedback are always welcome. Feel free to open an issue.
 
 ---

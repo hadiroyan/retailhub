@@ -15,6 +15,7 @@ Base URL:
 | POST   | `/api/auth/register-customer` | Register new customer            |
 | POST   | `/api/auth/register-owner`    | Register new store owner         |
 | GET    | `/api/auth/me`                | Get currently authenticated user |
+| POST   | `/api/auth/change-password`   | Change password (authenticated)  |
 | POST   | `/api/auth/logout`            | Logout current user              |
 | PUT    | `/api/auth/me`                | Update current user profile      |
 | POST   | `/api/auth/verify-email`      | Verify email with OTP            |
@@ -54,10 +55,18 @@ Base URL:
 | POST   | `/api/v1/stores/{storeId}/products`              | Create product (OWNER, ADMIN, MANAGER)                   |
 | GET    | `/api/v1/stores/{storeId}/products`              | List product (Public, filter: name/category/sortByPrice) |
 | GET    | `/api/v1/stores/{storeId}/products/internal`     | List products with detail (OWNER, ADMIN, MANAGER, STAFF) |
-| GET    | `/api/v1/stores/{storeId}/products/{sku}  `      | Product detail by SKU (Public)                           |
+| GET    | `/api/v1/stores/{storeId}/products/{sku}`        | Product detail by SKU (Public)                           |
 | GET    | `/api/v1/stores/{storeId}/products/{sku}/detail` | Product detail by SKU (INTERNAL: OWNER, ADMIN, MANAGER)  |
-| PUT    | `/api/v1/stores/{storeId}/products/{id} `        | Update product (OWNER, ADMIN, MANAGER)                   |
+| PUT    | `/api/v1/stores/{storeId}/products/{id}`         | Update product (OWNER, ADMIN, MANAGER)                   |
 | DELETE | `/api/v1/stores/{storeId}/products/{id}`         | Delete product (OWNER, ADMIN, MANAGER)                   |
+
+### Product Images
+
+| Method | Endpoint                                                   | Description                                                                                    |
+| ------ | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| POST   | `/api/v1/stores/{storeId}/products/{id}/images/{filename}` | Upload product image, max 5 per product, JPEG/PNG/WEBP, max 5MB (OWNER, ADMIN, MANAGER, STAFF) |
+| DELETE | `/api/v1/stores/{storeId}/products/{id}/images/{filename}` | Delete product image (OWNER, ADMIN, MANAGER, STAFF)                                            |
+| GET    | `/api/v1/files/products/{storeId}/{filename}`              | Serve product image file (Public)                                                              |
 
 ---
 
@@ -87,11 +96,34 @@ Base URL:
 | POST   | `/api/v1/orders`                              | Create order (CUSTOMER)                          |
 | GET    | `/api/v1/orders`                              | List customer orders (CUSTOMER)                  |
 | GET    | `/api/v1/orders/{id}`                         | Order detail (CUSTOMER)                          |
-| DELETE | `/api/v1/orders/{id}`                         | Cancel order (CUSTOMER)                          |
+| DELETE | `/api/v1/orders/{id}`                         | Cancel order (CUSTOMER, from PENDING/PROCESSING) |
 | GET    | `/api/v1/stores/{storeId}/orders`             | List store orders (OWNER, ADMIN, MANAGER, STAFF) |
 | GET    | `/api/v1/stores/{storeId}/orders/{id}`        | Order detail (OWNER, ADMIN, MANAGER, STAFF)      |
 | PATCH  | `/api/v1/stores/{storeId}/orders/{id}/status` | Update order status (OWNER, ADMIN, MANAGER)      |
 
 ---
 
-### More endpoints will be added as new features are implemented.
+## Suppliers
+
+| Method | Endpoint                                  | Description                    |
+| ------ | ----------------------------------------- | ------------------------------ |
+| POST   | `/api/v1/stores/{storeId}/suppliers`      | Create supplier (OWNER, ADMIN) |
+| GET    | `/api/v1/stores/{storeId}/suppliers`      | List suppliers (OWNER, ADMIN)  |
+| GET    | `/api/v1/stores/{storeId}/suppliers/{id}` | Supplier detail (OWNER, ADMIN) |
+| PUT    | `/api/v1/stores/{storeId}/suppliers/{id}` | Update supplier (OWNER, ADMIN) |
+| DELETE | `/api/v1/stores/{storeId}/suppliers/{id}` | Delete supplier (OWNER, ADMIN) |
+
+---
+
+## Purchase Orders
+
+| Method | Endpoint                                               | Description                                                          |
+| ------ | ------------------------------------------------------ | -------------------------------------------------------------------- |
+| POST   | `/api/v1/stores/{storeId}/purchase-orders`             | Create PO (OWNER, ADMIN, MANAGER)                                    |
+| GET    | `/api/v1/stores/{storeId}/purchase-orders`             | List POs (OWNER, ADMIN, MANAGER, STAFF)                              |
+| GET    | `/api/v1/stores/{storeId}/purchase-orders/{id}`        | PO detail (OWNER, ADMIN, MANAGER, STAFF)                             |
+| PATCH  | `/api/v1/stores/{storeId}/purchase-orders/{id}/status` | Update PO status (OWNER, ADMIN, MANAGER — stock added on `RECEIVED`) |
+
+---
+
+### More endpoints will be added as new features are implemented (e.g. analytics, reports, notifications).
