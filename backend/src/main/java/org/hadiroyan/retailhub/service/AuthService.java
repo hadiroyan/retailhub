@@ -69,6 +69,9 @@ public class AuthService {
     @Inject
     EntityManager entityManager;
 
+    @Inject
+    OtpRateLimiter otpRateLimiter;
+
     @ConfigProperty(name = "app.otp.expiry-minutes", defaultValue = "10")
     int otpExpiryMinutes;
 
@@ -327,6 +330,7 @@ public class AuthService {
         token.persist();
 
         emailService.sendVerificationEmail(user.email, user.fullName, otp);
+        otpRateLimiter.increment(user.id);
 
         LOG.infof("action=OTP_GENERATED email=%s", user.email);
     }
@@ -375,7 +379,7 @@ public class AuthService {
             throw new BadRequestException("Email already verified");
         }
 
-        long recentCount = tokenRepository.countRecentByUserId(user.id, LocalDateTime.now().minusHours(1));
+        long recentCount = otpRateLimiter.peek(user.id);
 
         if (recentCount >= maxResendPerHour) {
             LOG.warnf("action=RESEND_OTP_RATE_LIMITED email=%s count=%d", email, recentCount);

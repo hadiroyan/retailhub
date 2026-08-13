@@ -65,6 +65,9 @@ public class AuthServiceTest {
     @Inject
     EntityManager entityManager;
 
+    @Inject
+    OtpRateLimiter otpRateLimiter;
+
     @Test
     void should_success_login_with_valid_credentials() {
 
@@ -388,6 +391,7 @@ public class AuthServiceTest {
         user.emailVerified = false;
         // Delete all tokens
         emailVerificationTokenRepository.delete("user.id", userId);
+        otpRateLimiter.reset(userId);
     }
 
     @Transactional

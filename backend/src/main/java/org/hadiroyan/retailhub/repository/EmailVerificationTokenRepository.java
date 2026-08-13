@@ -10,7 +10,7 @@ import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class EmailVerificationTokenRepository implements PanacheRepositoryBase<EmailVerificationToken, UUID>{
+public class EmailVerificationTokenRepository implements PanacheRepositoryBase<EmailVerificationToken, UUID> {
 
     public Optional<EmailVerificationToken> findLatestActiveByUserId(UUID userId) {
         return find("""
@@ -24,6 +24,13 @@ public class EmailVerificationTokenRepository implements PanacheRepositoryBase<E
                 .firstResultOptional();
     }
 
+    /**
+     * @deprecated Rate limiting for OTP resend now use redis based
+     *             ({@link org.hadiroyan.retailhub.service.OtpRateLimiter})
+     *             This method is unused as of the Redis migration and kept only for
+     *             reference. Candidate for removal in a future cleanup.
+     */
+    @Deprecated(since = "2026-08", forRemoval = true)
     public long countRecentByUserId(UUID userId, LocalDateTime since) {
         return count("user.id = ?1 AND createdAt >= ?2", userId, since);
     }

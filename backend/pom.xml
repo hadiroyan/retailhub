@@ -87,6 +87,11 @@
             <artifactId>quarkus-mailer</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-redis-client</artifactId>
+        </dependency>
+
         <!-- Mailpit Dev Service -->
         <dependency>
             <groupId>io.quarkiverse.mailpit</groupId>
