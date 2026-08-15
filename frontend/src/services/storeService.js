@@ -178,9 +178,10 @@ export const storeService = {
     return response.data;
   },
 
-  async deleteProductImage(storeId, productId, filename) {
+  async deleteProductImage(storeId, productId, publicId) {
     const response = await api.delete(
-      API_ENDPOINTS.PRODUCTS.IMAGE_DELETE(storeId, productId, filename)
+      API_ENDPOINTS.PRODUCTS.IMAGE_DELETE(storeId, productId),
+      { params: { publicId } }
     );
     return response.data;
   },

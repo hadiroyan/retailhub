@@ -88,30 +88,29 @@ public class ProductImageService {
 
     @Transactional
     public ProductDetailResponse deleteImage(UUID storeId, UUID productId,
-            UUID userId, String filename) {
+            UUID userId, String publicId) {
 
-        LOG.debugf("action=DELETE_PRODUCT_IMAGE_START userId=%s storeId=%s productId=%s filename=%s",
-                userId, storeId, productId, filename);
+        LOG.debugf("action=DELETE_PRODUCT_IMAGE_START userId=%s storeId=%s productId=%s publicId=%s",
+                userId, storeId, productId, publicId);
 
         validateStoreExists(storeId);
         checkImagePermission(userId, storeId);
 
         Product product = findProductOrThrow(productId);
         validateSameStoreProduct(product, storeId);
-        validateFilename(userId, filename);
+        validatePublicId(userId, publicId);
 
-        String targetUrl = "products/" + storeId + "/" + filename;
-        boolean removed = product.imageUrls.remove(targetUrl);
+        boolean removed = product.imageUrls.remove(publicId);
 
         if (!removed) {
-            LOG.warnf("action=VALIDATE_FAILED_FILENAME_REQUIRED");
+            LOG.warnf("action=IMAGE_NOT_FOUND_IN_PRODUCT productId=%s publicId=%s", productId, publicId);
             throw new NotFoundException("Image not found");
         }
 
-        fileStorageService.deleteFile(targetUrl);
+        fileStorageService.deleteFile(publicId);
 
-        LOG.infof("action=DELETE_PRODUCT_IMAGE_SUCCESS userId=%s productId=%s filename=%s",
-                userId, productId, filename);
+        LOG.infof("action=DELETE_PRODUCT_IMAGE_SUCCESS userId=%s productId=%s publicId=%s",
+                userId, productId, publicId);
 
         return productMapper.toDetailResponse(product);
     }
@@ -128,20 +127,20 @@ public class ProductImageService {
                 });
     }
 
-    private void validateFilename(UUID userId, String filename) {
-        if (filename == null || filename.isBlank()) {
-            LOG.warnf("action=VALIDATE_FAILED_FILENAME_REQUIRED userId=%s", userId);
-            throw new BadRequestException("Filename is required");
+    private void validatePublicId(UUID userId, String publicId) {
+        if (publicId == null || publicId.isBlank()) {
+            LOG.warnf("action=VALIDATE_FAILED_PUBLIC_ID_REQUIRED userId=%s", userId);
+            throw new BadRequestException("Image identifier is required");
         }
 
-        if (!filename.matches("^[a-zA-Z0-9\\-\\.]+$")) {
-            LOG.warnf("action=VALIDATE_FAILED_FILENAME_INVALID userId=%s filename=%s", userId, filename);
-            throw new BadRequestException("Invalid filename");
+        if (!publicId.matches("^[a-zA-Z0-9/\\-]+$")) {
+            LOG.warnf("action=VALIDATE_FAILED_PUBLIC_ID_INVALID userId=%s publicId=%s", userId, publicId);
+            throw new BadRequestException("Invalid image identifier");
         }
 
-        if (filename.contains("..")) {
-            LOG.warnf("action=VALIDATE_FAILED_FILENAME_INVALID userId=%s filename=%s", userId, filename);
-            throw new BadRequestException("Invalid filename");
+        if (publicId.contains("..")) {
+            LOG.warnf("action=VALIDATE_FAILED_PUBLIC_ID_INVALID userId=%s publicId=%s", userId, publicId);
+            throw new BadRequestException("Invalid image identifier");
         }
     }
 

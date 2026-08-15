@@ -18,6 +18,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -54,17 +55,15 @@ public class ProductImageResource {
     }
 
     @DELETE
-    @Path("/{filename}")
     public Response deleteImage(
             @PathParam("storeId") UUID storeId,
             @PathParam("productId") UUID productId,
-            @PathParam("filename") String filename) {
+            @QueryParam("publicId") String publicId) {
 
         UUID userId = currentUser.getUserId();
         LOG.debugf("action=DELETE_IMAGE_PRODUCT_REQUEST userId=%s", userId);
 
-        ProductDetailResponse response = productImageService.deleteImage(
-                storeId, productId, userId, filename);
+        ProductDetailResponse response = productImageService.deleteImage(storeId, productId, userId, publicId);
 
         LOG.infof("action=DELETE_IMAGE_PRODUCT_RESPONSE status=%s userId=%s", response.status, userId);
         return Response.ok(ApiResponse.success("Image deleted successfully", response)).build();

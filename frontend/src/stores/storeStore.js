@@ -390,11 +390,11 @@ export const useStoreStore = defineStore("store", () => {
     }
   }
 
-  async function deleteProductImage(storeId, productId, filename) {
+  async function deleteProductImage(storeId, productId, publicId) {
     loading.value = true;
     error.value = null;
     try {
-      const response = await storeService.deleteProductImage(storeId, productId, filename);
+      const response = await storeService.deleteProductImage(storeId, productId, publicId);
       const index = products.value.findIndex(p => p.id === productId);
       if (index !== -1) products.value[index] = response.data;
       return response.data;

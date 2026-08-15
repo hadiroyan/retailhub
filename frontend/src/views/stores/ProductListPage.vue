@@ -78,7 +78,7 @@
                         <td class="px-4 py-3">
                             <div
                                 class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
-                                <img v-if="product.imageUrls?.length > 0" :src="getImageUrl(product.imageUrls[0])"
+                                <img v-if="product.imageUrls?.length > 0" :src="product.imageUrls[0].url"
                                     :alt="product.name" class="w-full h-full object-cover" />
                                 <i v-else class="fas fa-box text-gray-300 text-sm"></i>
                             </div>
@@ -257,17 +257,16 @@
 
                     <!-- Existing images -->
                     <div v-if="selectedProduct?.imageUrls?.length > 0" class="grid grid-cols-3 gap-2 mb-4">
-                        <div v-for="(url, index) in selectedProduct.imageUrls" :key="url"
+                        <div v-for="(image, index) in selectedProduct.imageUrls" :key="image.publicId"
                             class="relative group aspect-square rounded-lg overflow-hidden bg-gray-100">
-                            <img :src="getImageUrl(url)" :alt="`Image ${index + 1}`"
-                                class="w-full h-full object-cover" />
+                            <img :src="image.url" :alt="`Image ${index + 1}`" class="w-full h-full object-cover" />
                             <!-- Thumbnail badge -->
                             <div v-if="index === 0"
                                 class="absolute top-1 left-1 text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded font-medium">
                                 Thumbnail
                             </div>
                             <!-- Delete button -->
-                            <button @click="handleDeleteImage(url)"
+                            <button @click="handleDeleteImage(image.publicId)"
                                 class="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                                 :disabled="imageLoading">
                                 <i class="fas fa-times text-xs"></i>
@@ -527,14 +526,12 @@ const handleUploadImage = async () => {
     }
 };
 
-const handleDeleteImage = async (url) => {
-    // Extract filename 
-    const filename = url.split('/').pop();
+const handleDeleteImage = async (publicId) => {
     imageLoading.value = true;
     imageError.value = null;
     try {
         const result = await storeStore.deleteProductImage(
-            storeId.value, selectedProduct.value.id, filename
+            storeId.value, selectedProduct.value.id, publicId
         );
         selectedProduct.value = result;
         fetchWithFilters();

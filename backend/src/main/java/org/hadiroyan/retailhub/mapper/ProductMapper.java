@@ -3,11 +3,16 @@ package org.hadiroyan.retailhub.mapper;
 import org.hadiroyan.retailhub.dto.response.ProductDetailResponse;
 import org.hadiroyan.retailhub.dto.response.ProductResponse;
 import org.hadiroyan.retailhub.model.Product;
+import org.hadiroyan.retailhub.service.FileStorageService;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ProductMapper {
+
+    @Inject
+    FileStorageService fileStorageService;
 
     public ProductResponse toResponse(Product product) {
         ProductResponse response = new ProductResponse();
@@ -19,7 +24,7 @@ public class ProductMapper {
         response.stockQuantity = product.stockQuantity;
         response.status = product.status;
         response.imageUrls = product.imageUrls.stream()
-                .map(path -> "/api/v1/files/" + path)
+                .map(fileStorageService::buildImageUrl)
                 .toList();
 
         if (product.category != null) {
@@ -46,7 +51,12 @@ public class ProductMapper {
         response.minStockLevel = product.minStockLevel;
         response.status = product.status;
         response.imageUrls = product.imageUrls.stream()
-                .map(path -> "/api/v1/files/" + path)
+                .map(publicId -> {
+                    ProductDetailResponse.ImageInfo info = new ProductDetailResponse.ImageInfo();
+                    info.publicId = publicId;
+                    info.url = fileStorageService.buildImageUrl(publicId);
+                    return info;
+                })
                 .toList();
         response.createdAt = product.createdAt;
         response.updatedAt = product.updatedAt;

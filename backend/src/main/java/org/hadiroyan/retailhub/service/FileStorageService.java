@@ -1,11 +1,7 @@
 package org.hadiroyan.retailhub.service;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,7 +10,12 @@ import org.hadiroyan.retailhub.exception.BadRequestException;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
+import com.cloudinary.utils.ObjectUtils;
+
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class FileStorageService {
@@ -26,8 +27,11 @@ public class FileStorageService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    @ConfigProperty(name = "app.upload.dir", defaultValue = "./uploads")
-    String uploadDir;
+    @Inject
+    Cloudinary cloudinary;
+
+    @ConfigProperty(name = "cloudinary.folder-prefix", defaultValue = "products")
+    String folderPrefix;
 
     // =========================================================================
     // Upload
@@ -39,55 +43,63 @@ public class FileStorageService {
 
         validateFile(file.contentType(), file.size());
 
-        try (InputStream inputStream = Files.newInputStream(file.uploadedFile())) {
-            String extension = getExtension(file.fileName(), file.contentType());
-            String filename = UUID.randomUUID().toString() + "." + extension;
-            String subDir = "products/" + storeId;
+        try {
+            String folder = folderPrefix + "/" + storeId;
+            String publicId = UUID.randomUUID().toString();
 
-            Path dirPath = Paths.get(uploadDir, subDir);
-            Path filePath = dirPath.resolve(filename);
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                    file.uploadedFile().toFile(),
+                    ObjectUtils.asMap(
+                            "folder", folder,
+                            "public_id", publicId,
+                            "resource_type", "image",
+                            "overwrite", false));
 
-            Files.createDirectories(dirPath);
-            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            LOG.infof("action=FILE_UPLOAD_SUCCESS path=%s", filePath);
+            String returnedPublicId = (String) uploadResult.get("public_id");
 
-            return "products/" + storeId + "/" + filename;
+            LOG.infof("action=FILE_UPLOAD_SUCCESS publicId=%s", returnedPublicId);
+
+            return returnedPublicId;
         } catch (IOException ioe) {
             LOG.errorf("action=FILE_UPLOAD_FAILED error=%s", ioe.getMessage());
             throw new RuntimeException("Failed to upload file");
         }
-
     }
 
     // =========================================================================
     // Delete
     // =========================================================================
-    public void deleteFile(String storageKey) {
-        if (storageKey == null || storageKey.isBlank())
+
+    public void deleteFile(String publicId) {
+        if (publicId == null || publicId.isBlank())
             return;
 
-        Path filePath = Paths.get(uploadDir, storageKey);
-
         try {
-            boolean deleted = Files.deleteIfExists(filePath);
+            Map<?, ?> result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            String status = (String) result.get("result");
 
-            if (deleted) {
-                LOG.infof("action=FILE_DELETE_SUCCESS path=%s", filePath);
+            if ("ok".equals(status)) {
+                LOG.infof("action=FILE_DELETE_SUCCESS publicId=%s", publicId);
             } else {
-                LOG.warnf("action=FILE_DELETE_NOT_FOUND path=%s", filePath);
+                LOG.warnf("action=FILE_DELETE_NOT_FOUND publicId=%s status=%s", publicId, status);
             }
-
         } catch (IOException e) {
-            LOG.errorf("action=FILE_DELETE_FAILED path=%s error=%s", filePath, e.getMessage());
+            LOG.errorf("action=FILE_DELETE_FAILED publicId=%s error=%s", publicId, e.getMessage());
         }
     }
 
     // =========================================================================
-    // Serve
+    // URL Generation — dipakai ProductMapper
     // =========================================================================
 
-    public Path resolveFilePath(String subPath) {
-        return Paths.get(uploadDir, subPath);
+    public String buildImageUrl(String publicId) {
+        if (publicId == null || publicId.isBlank())
+            return null;
+
+        return cloudinary.url()
+                .transformation(new Transformation<>().fetchFormat("auto").quality("auto"))
+                .secure(true)
+                .generate(publicId);
     }
 
     // =========================================================================
@@ -113,15 +125,4 @@ public class FileStorageService {
         }
     }
 
-    private String getExtension(String originalFileName, String contentType) {
-        if (originalFileName != null && originalFileName.contains(".")) {
-            return originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
-        }
-        return switch (contentType) {
-            case "image/jpeg", "image/jpg" -> "jpg";
-            case "image/png" -> "png";
-            case "image/webp" -> "webp";
-            default -> "jpg";
-        };
-    }
 }

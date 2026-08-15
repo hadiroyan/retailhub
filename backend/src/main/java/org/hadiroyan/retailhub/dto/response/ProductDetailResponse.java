@@ -22,7 +22,7 @@ public class ProductDetailResponse {
     public Integer stockQuantity;
     public Integer minStockLevel;
     public String status;
-    public List<String> imageUrls;
+    public List<ImageInfo> imageUrls;
     public LocalDateTime createdAt;
     public LocalDateTime updatedAt;
 
@@ -33,5 +33,10 @@ public class ProductDetailResponse {
         public UUID id;
         public String name;
         public String slug;
+    }
+
+    public static class ImageInfo {
+        public String publicId;
+        public String url;
     }
 }
