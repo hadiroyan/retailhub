@@ -18,6 +18,5 @@ public class CreatePurchaseOrderRequest {
     public String notes;
 
     @NotEmpty(message = "Purchase order must have at least one item")
-    @Valid
-    public List<CreatePurchaseOrderItemRequest> items;
+    public List<@Valid CreatePurchaseOrderItemRequest> items;
 }

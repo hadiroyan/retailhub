@@ -28,6 +28,5 @@ public class CreateOrderRequest {
     public String notes;
 
     @NotEmpty(message = "Order must have at least one item")
-    @Valid
-    public List<CreateOrderItemRequest> items;
+    public List<@Valid CreateOrderItemRequest> items;
 }
