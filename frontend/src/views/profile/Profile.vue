@@ -84,48 +84,7 @@
                                 <span class="text-yellow-600 text-sm">
                                     <i class="fas fa-exclamation-circle mr-1"></i>Not verified
                                 </span>
-
-                                <!-- “Send OTP” button (before the form appears) -->
-                                <div v-if="!showOtpForm" class="mt-1">
-                                    <button @click="handleSendOtp" :disabled="otpLoading"
-                                        class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50">
-                                        <span v-if="otpLoading">
-                                            <i class="fas fa-spinner animate-spin mr-1"></i>Sending...
-                                        </span>
-                                        <span v-else>Send OTP</span>
-                                    </button>
-                                </div>
-
-                                <!-- OTP input form (after the OTP is sent) -->
-                                <div v-if="showOtpForm" class="space-y-2 mt-1">
-                                    <p class="text-xs text-gray-500">
-                                        OTP sent to <span class="font-medium">{{ userEmail }}</span>.
-                                        Valid for 10 minutes.
-                                    </p>
-                                    <div class="flex gap-2 flex-wrap">
-                                        <input v-model="otpInput" type="text" maxlength="6"
-                                            placeholder="Enter 6-digit OTP"
-                                            class="w-40 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                        <button @click="handleVerifyOtp" :disabled="otpLoading || otpInput.length !== 6"
-                                            class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50">
-                                            <span v-if="otpLoading">
-                                                <i class="fas fa-spinner animate-spin mr-1"></i>
-                                            </span>
-                                            <span v-else>Verify</span>
-                                        </button>
-                                        <button @click="handleSendOtp" :disabled="otpLoading"
-                                            class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50">
-                                            Resend
-                                        </button>
-                                    </div>
-
-                                    <div v-if="otpError" class="text-xs text-red-500">
-                                        <i class="fas fa-times-circle mr-1"></i>{{ otpError }}
-                                    </div>
-                                    <div v-if="otpSuccess" class="text-xs text-green-600">
-                                        <i class="fas fa-check-circle mr-1"></i>{{ otpSuccess }}
-                                    </div>
-                                </div>
+                                <EmailOtpVerificationForm :email="userEmail" />
                             </div>
                         </div>
 
@@ -159,7 +118,7 @@
                                 class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 :class="{ 'border-red-400': passwordError }" />
 
-                            <button type="button" class="absolute right-3 top-[31px] text-gray-500 hover:text-gray-700"
+                            <button type="button" class="absolute right-3 top-7.75 text-gray-500 hover:text-gray-700"
                                 @click="showCurrentPassword = !showCurrentPassword">
                                 <i :class="['fas', showCurrentPassword ? 'fa-eye' : 'fa-eye-slash']"></i>
                             </button>
@@ -173,7 +132,7 @@
                                 class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 :class="{ 'border-red-400': passwordError }" />
 
-                            <button type="button" class="absolute right-3 top-[31px] text-gray-500 hover:text-gray-700"
+                            <button type="button" class="absolute right-3 top-7.75 text-gray-500 hover:text-gray-700"
                                 @click="showNewPassword = !showNewPassword">
                                 <i :class="['fas', showNewPassword ? 'fa-eye' : 'fa-eye-slash']"></i>
                             </button>
@@ -187,7 +146,7 @@
                                 class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 :class="{ 'border-red-400': passwordError }" />
 
-                            <button type="button" class="absolute right-3 top-[31px] text-gray-500 hover:text-gray-700"
+                            <button type="button" class="absolute right-3 top-7.75 text-gray-500 hover:text-gray-700"
                                 @click="showConfirmNewPassword = !showConfirmNewPassword">
                                 <i :class="['fas', showConfirmNewPassword ? 'fa-eye' : 'fa-eye-slash']"></i>
                             </button>
@@ -266,6 +225,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.vue';
 import CustomerLayout from '../../layouts/CustomerLayout.vue';
 import { useAuthStore } from '../../stores/auth';
 import { ROLES, ROUTE_NAMES } from '../../utils/constants';
+import EmailOtpVerificationForm from '../../components/forms/EmailOtpVerificationForm.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();

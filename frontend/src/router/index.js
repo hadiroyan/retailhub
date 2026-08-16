@@ -32,6 +32,7 @@ import OrderHistoryPage from "../views/customer/OrderHistoryPage.vue";
 import StoreOrderListPage from "../views/stores/StoreOrderListPage.vue";
 import SupplierListPage from "../views/stores/SupplierListPage.vue";
 import PurchaseOrderListPage from "../views/stores/PurchaseOrderListPage.vue";
+import VerifyEmailPage from "../views/auth/VerifyEmailPage.vue";
 
 const routes = [
   // =========================================================================
@@ -69,6 +70,12 @@ const routes = [
     name: ROUTE_NAMES.REGISTER_OWNER,
     component: RegisterOwner,
     meta: { guest: true },
+  },
+  {
+    path: ROUTE_PATHS.VERIFY_EMAIL,
+    name: ROUTE_NAMES.VERIFY_EMAIL,
+    component: VerifyEmailPage,
+    meta: { requiresAuth: true, title: "Verify Email" },
   },
 
   // =========================================================================

@@ -205,9 +205,9 @@ const handleRegister = async () => {
         // Show success message
         registrationSuccess.value = true;
 
-        // Redirect to dashboard after 2 seconds
+        // Redirect to verify email after 2 seconds
         setTimeout(() => {
-            router.push({ name: ROUTE_NAMES.DASHBOARD });
+            router.push({ name: ROUTE_NAMES.VERIFY_EMAIL }); 
         }, 2000);
     } catch (error) {
         console.error('Registration failed:', error);

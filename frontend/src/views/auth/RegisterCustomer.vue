@@ -7,7 +7,7 @@
                     <i class="fa-solid fa-circle-check text-green-500 text-xl mr-3"></i>
                     <div>
                         <p class="text-sm font-medium text-green-800">Registration Successful!</p>
-                        <p class="text-xs text-green-700 mt-1">Redirecting to dashboard page...</p>
+                        <p class="text-xs text-green-700 mt-1">Redirecting to email verification...</p>
                     </div>
                 </div>
             </div>
@@ -205,9 +205,9 @@ const handleRegister = async () => {
         // Show success message
         registrationSuccess.value = true;
 
-        // Redirect to dashboard after 2 seconds
+        // Redirect to verify email after 2 seconds
         setTimeout(() => {
-            router.push({ name: ROUTE_NAMES.DASHBOARD });
+            router.push({ name: ROUTE_NAMES.VERIFY_EMAIL });
         }, 2000);
     } catch (error) {
         console.error('Registration failed:', error);

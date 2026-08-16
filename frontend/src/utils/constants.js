@@ -96,6 +96,7 @@ export const ROUTE_NAMES = {
   LOGIN: "login",
   REGISTER_CUSTOMER: "register-customer",
   REGISTER_OWNER: "register-owner",
+  VERIFY_EMAIL: 'verify-email',
 
   // Dashboard routes
   DASHBOARD: "dashboard",
@@ -148,6 +149,7 @@ export const ROUTE_PATHS = {
   LOGIN: "/login",
   REGISTER_CUSTOMER: "/register/customer",
   REGISTER_OWNER: "/register/owner",
+  VERIFY_EMAIL: '/verify-email',
 
   DASHBOARD: "/dashboard",
 
